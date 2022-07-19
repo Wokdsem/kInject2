@@ -10,5 +10,11 @@ dependencies {
 }
 
 application {
-    mainClass.set("kinject2.app.AppKt")
+    mainClass.set("com.wokdsem.kinject2.app.AppKt")
+}
+
+kotlin {
+    sourceSets.main {
+        kotlin.srcDir("build/generated/ksp/main/kotlin")
+    }
 }

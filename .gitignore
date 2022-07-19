@@ -1,5 +1,8 @@
 
 /buildSrc/.gradle/
 /buildSrc/build/
+/examples/build/
+/kinject2/build/
+/processor/build/
 /.gradle/
 /.idea/
