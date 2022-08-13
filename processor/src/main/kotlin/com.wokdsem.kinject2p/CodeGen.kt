@@ -14,11 +14,11 @@ private const val GRAPH_PARAM = "graph"
 
 internal class KspCodegen(val generator: CodeGenerator, val files: List<KSFile>)
 
-internal fun generate(graph: KSClassDeclaration, codegen: KspCodegen) {
-    val graphClass = graph.toClassName()
-    val graphVisibility = checkNotNull(graph.getVisibility().toKModifier())
-    val kGraphPackage = graph.packageName.asString()
-    val kGraphName = "K${graph.simpleName.getShortName()}"
+internal fun generate(root: KSClassDeclaration, codegen: KspCodegen) {
+    val graphClass = root.toClassName()
+    val graphVisibility = checkNotNull(root.getVisibility().toKModifier())
+    val kGraphPackage = root.packageName.asString()
+    val kGraphName = "K${root.simpleName.getShortName()}"
     val kGraphClass = ClassName(kGraphPackage, kGraphName)
     FileSpec
         .builder(kGraphPackage, kGraphName)
