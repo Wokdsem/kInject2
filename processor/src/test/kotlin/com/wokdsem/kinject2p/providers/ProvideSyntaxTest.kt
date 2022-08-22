@@ -1,7 +1,7 @@
 package com.wokdsem.kinject2p.providers
 
 import com.tschuchort.compiletesting.SourceFile
-import com.wokdsem.kinject2p.assertErrorScenario
+import com.wokdsem.kinject2p.asserCompilationError
 import org.junit.jupiter.api.Test
 
 class ProvideSyntaxTest {
@@ -17,7 +17,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
+        asserCompilationError(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
     }
 
     @Test
@@ -31,7 +31,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
+        asserCompilationError(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
     }
 
     @Test
@@ -46,7 +46,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Suspend function are not allowed for a dependency provider")
+        asserCompilationError(graph, "KTestGraph", "Suspend function are not allowed for a dependency provider")
     }
 
     @Test
@@ -60,7 +60,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "A provider cannot be parametrized with generic types")
+        asserCompilationError(graph, "KTestGraph", "A provider cannot be parametrized with generic types")
     }
 
     @Test
@@ -75,7 +75,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Extension are not allowed for a dependency provider")
+        asserCompilationError(graph, "KTestGraph", "Extension are not allowed for a dependency provider")
     }
 
     @Test
@@ -90,7 +90,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Default values are not allowed")
+        asserCompilationError(graph, "KTestGraph", "Default values are not allowed")
     }
 
     @Test
@@ -105,7 +105,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Vararg param is not allowed")
+        asserCompilationError(graph, "KTestGraph", "Vararg param is not allowed")
     }
 
 }

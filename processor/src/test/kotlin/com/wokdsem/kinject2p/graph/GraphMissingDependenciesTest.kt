@@ -1,7 +1,7 @@
 package com.wokdsem.kinject2p.graph
 
 import com.tschuchort.compiletesting.SourceFile
-import com.wokdsem.kinject2p.assertErrorScenario
+import com.wokdsem.kinject2p.asserCompilationError
 import org.junit.jupiter.api.Test
 
 class GraphMissingDependenciesTest {
@@ -17,7 +17,7 @@ class GraphMissingDependenciesTest {
              }
             """
         )
-        assertErrorScenario(graph, "KTestGraph", "The provider for dependency times is missing")
+        asserCompilationError(graph, "KTestGraph", "The provider for dependency times is missing")
     }
 
 }

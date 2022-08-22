@@ -1,7 +1,7 @@
 package com.wokdsem.kinject2p.providers
 
 import com.tschuchort.compiletesting.SourceFile
-import com.wokdsem.kinject2p.assertErrorScenario
+import com.wokdsem.kinject2p.asserCompilationError
 import com.wokdsem.kinject2p.compile
 import org.junit.jupiter.api.Test
 
@@ -19,7 +19,7 @@ class ProvideDuplicatedTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Providers clash, a dependency type can only be provided once")
+        asserCompilationError(graph, "KTestGraph", "Providers clash, a dependency type can only be provided once")
     }
 
     @Test

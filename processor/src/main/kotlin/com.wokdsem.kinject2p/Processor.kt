@@ -20,7 +20,7 @@ class KinjectProcessor(
                     failure.error.root.forEach { environment.logger.error(failure.error.message, it) }
                     return@processor
                 }
-            }.forEach { graph -> generate(root = graph.root, codegen = KspCodegen(environment.codeGenerator, files = graph.files)) }
+            }.forEach { graph -> generate(graph = graph, codeGenerator = environment.codeGenerator) }
         }
         return emptyList()
     }

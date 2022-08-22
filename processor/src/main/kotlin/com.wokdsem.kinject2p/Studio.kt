@@ -9,25 +9,26 @@ internal fun processGraph(graphDeclaration: KSClassDeclaration): Analysis<Graph>
     val graphFile = graphDeclaration.containingFile ?: return fail("Unexpected non-backed file class", graphDeclaration)
     return graphDeclaration.validateGraphDeclaration().flatMap { graph ->
         val files = mutableListOf(graphFile)
-        val providers = mutableMapOf<DepId, Provider>()
+        val providersIndex = mutableMapOf<Id, Provider>()
         graph.getDeclaredFunctions().forEach { method ->
             method.indexProvider().getOr { failure -> return failure }?.let { provider ->
-                val previousValue = providers.put(provider.id, provider)
+                val previousValue = providersIndex.put(provider.id, provider)
                 if (previousValue != null) {
                     val failMessage = "Providers clash, a dependency type can only be provided once - typealias may help to break the clash"
                     return fail(failMessage, provider.declaration, previousValue.declaration)
                 }
             }
         }
-        validateGraph(providers).getOr { failure -> return failure }
+        val providers = validateGraph(providersIndex).getOr { failure -> return failure }
         Graph(root = graphDeclaration, files = files, providers = providers).success
     }
 }
 
-private fun validateGraph(graph: Map<DepId, Provider>): Analysis<Boolean> {
+private fun validateGraph(graph: Map<Id, Provider>): Analysis<List<Provider>> {
     val success = true.success
-    val validated = mutableSetOf<DepId>()
-    fun validateProvider(provider: Provider, path: Set<DepId> = emptySet()): Analysis<Boolean> {
+    val validated = mutableSetOf<Id>()
+    val providers = mutableListOf<Provider>()
+    fun validateProvider(provider: Provider, path: Set<Id> = emptySet()): Analysis<Boolean> {
         provider.dependencies.forEach { dep ->
             fun cycleList() = (path.toList() + provider.id + dep.id).joinToString(separator = " -> ") { dep -> dep.id.takeLastWhile { it != '.' } }
             val isValidated = dep.id in validated
@@ -38,10 +39,11 @@ private fun validateGraph(graph: Map<DepId, Provider>): Analysis<Boolean> {
             if (!isValidated) validateProvider(depProvider, path + provider.id).getOr { failure -> return failure }
         }
         validated += provider.id
+        providers += provider
         return success
     }
     graph.values.forEach { provider -> if (provider.id !in validated) validateProvider(provider).getOr { failure -> return failure } }
-    return success
+    return providers.success
 }
 
 private fun KSFunctionDeclaration.indexProvider(): Analysis<Provider?> {
@@ -51,16 +53,20 @@ private fun KSFunctionDeclaration.indexProvider(): Analysis<Provider?> {
         val dependencies = parameters.map { param -> param.indexProviderDependency().getOr { return it } }
         return validateProviderDeclaration().map {
             val dep = checkNotNull(returnType.arguments.first().type).resolve()
-            Provider(id = dep.id, exported = exported, scope = scope, isNullable = dep.isMarkedNullable, dependencies = dependencies, declaration = this)
+            Provider(
+                id = dep.id,
+                type = dep, exported = exported, scope = scope, isNullable = dep.isMarkedNullable,
+                providerFunction = simpleName.asString(), dependencies = dependencies, declaration = this
+            )
         }
     }
     return when (returnType.declaration.qualifiedName?.asString()) {
         FACTORY -> toProvider(false, Scope.FACTORY)
         SINGLE -> toProvider(false, Scope.SINGLE)
         EAGER -> toProvider(false, Scope.EAGER)
-        EXPORTED_FACTORY -> toProvider(false, Scope.FACTORY)
-        EXPORTED_SINGLE -> toProvider(false, Scope.SINGLE)
-        EXPORTED_EAGER -> toProvider(false, Scope.EAGER)
+        EXPORTED_FACTORY -> toProvider(true, Scope.FACTORY)
+        EXPORTED_SINGLE -> toProvider(true, Scope.SINGLE)
+        EXPORTED_EAGER -> toProvider(true, Scope.EAGER)
         else -> null.success
     }
 }
@@ -71,7 +77,7 @@ private fun KSValueParameter.indexProviderDependency(): Analysis<Dependency> {
     }
 }
 
-private val KSType.id get() = DepId(id = (if (isMarkedNullable) makeNotNullable() else this).toTypeName().toString())
+private val KSType.id get() = Id(id = (if (isMarkedNullable) makeNotNullable() else this).toTypeName().toString())
 
 private fun KSClassDeclaration.validateGraphDeclaration(): Analysis<KSClassDeclaration> {
     fun error(message: String): Analysis<KSClassDeclaration> = fail(message, this)

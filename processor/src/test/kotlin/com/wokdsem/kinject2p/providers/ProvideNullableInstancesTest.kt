@@ -1,7 +1,7 @@
 package com.wokdsem.kinject2p.providers
 
 import com.tschuchort.compiletesting.SourceFile
-import com.wokdsem.kinject2p.assertErrorScenario
+import com.wokdsem.kinject2p.asserCompilationError
 import com.wokdsem.kinject2p.compile
 import org.junit.jupiter.api.Test
 
@@ -19,7 +19,7 @@ class ProvideNullableInstancesTest {
              }
             """
         )
-        assertErrorScenario(graph, "KTestGraph", "Providers clash, a dependency type can only be provided once - typealias may help to break the clash")
+        asserCompilationError(graph, "KTestGraph", "Providers clash, a dependency type can only be provided once - typealias may help to break the clash")
     }
 
     @Test fun `assert that a nullable provider's dependency can be supplied by a provider that provides a non-nullable dependency of that type`() {
@@ -48,7 +48,7 @@ class ProvideNullableInstancesTest {
              }
             """
         )
-        assertErrorScenario(graph, "KTestGraph", "The provider for dependency times requires that times to be nullable")
+        asserCompilationError(graph, "KTestGraph", "The provider for dependency times requires that times to be nullable")
     }
 
 }

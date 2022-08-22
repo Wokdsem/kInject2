@@ -1,7 +1,7 @@
 package com.wokdsem.kinject2p.graph
 
 import com.tschuchort.compiletesting.SourceFile
-import com.wokdsem.kinject2p.assertErrorScenario
+import com.wokdsem.kinject2p.asserCompilationError
 import org.junit.jupiter.api.Test
 
 class GraphCycleTest {
@@ -18,7 +18,7 @@ class GraphCycleTest {
              }
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Graph cycle detected String -> Int -> String")
+        asserCompilationError(graph, "KTestGraph", "Graph cycle detected String -> Int -> String")
     }
 
 }

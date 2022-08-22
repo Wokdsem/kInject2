@@ -1,7 +1,7 @@
 package com.wokdsem.kinject2p.graph
 
 import com.tschuchort.compiletesting.SourceFile
-import com.wokdsem.kinject2p.assertErrorScenario
+import com.wokdsem.kinject2p.asserCompilationError
 import org.junit.jupiter.api.Test
 
 class GraphSyntaxTest {
@@ -14,7 +14,7 @@ class GraphSyntaxTest {
              @Graph protected class TestGraph
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
+        asserCompilationError(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
     }
 
     @Test
@@ -25,7 +25,7 @@ class GraphSyntaxTest {
              @Graph private class TestGraph
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
+        asserCompilationError(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
     }
 
     @Test
@@ -36,7 +36,7 @@ class GraphSyntaxTest {
              @Graph interface TestGraph
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "Only classes can be annotated as Graphs")
+        asserCompilationError(graph, "KTestGraph", "Only classes can be annotated as Graphs")
     }
 
     @Test
@@ -48,7 +48,7 @@ class GraphSyntaxTest {
              @Graph class TestGraph : A()
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "A graph cannot extend other classes or implement any interfaces")
+        asserCompilationError(graph, "KTestGraph", "A graph cannot extend other classes or implement any interfaces")
     }
 
     @Test
@@ -59,7 +59,7 @@ class GraphSyntaxTest {
              @Graph class TestGraph<T> 
         """
         )
-        assertErrorScenario(graph, "KTestGraph", "A graph cannot be parametrized with generic types")
+        asserCompilationError(graph, "KTestGraph", "A graph cannot be parametrized with generic types")
     }
 
 }

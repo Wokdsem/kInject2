@@ -1,21 +1,22 @@
 package com.wokdsem.kinject2.app
 
 import com.wokdsem.kinject2.Graph
-import com.wokdsem.kinject2.scope.factory
+import com.wokdsem.kinject2.scope.*
 
 @Graph
 class ApplicationGraph {
-    fun provideMoviesAdviser(service: MoviesService) = factory { MoviesAdviser(service) }
+    fun provideMoviesAdviser(service: MoviesService) = exportFactory { MoviesAdviser(service) }
     fun provideMoviesService() = factory<MoviesService> { LocalMoviesService() }
 }
 
 fun main() {
-    KApplicationGraph.from(graph = ApplicationGraph())
+    val graph = KApplicationGraph.from(graph = ApplicationGraph())
+    println(message = graph.moviesAdviser.recommendAMovie())
 }
 
 
 class MoviesAdviser(private val service: MoviesService) {
-    fun recommendAMovie() = "You'll have a lot of fun if you watch ${service.getMovies().shuffled().first()}"
+    fun recommendAMovie() = "You'll have a lot of fun watching ${service.getMovies().shuffled().first()}"
 }
 
 interface MoviesService {
