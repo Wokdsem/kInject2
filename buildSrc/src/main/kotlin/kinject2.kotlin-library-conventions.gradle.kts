@@ -3,3 +3,5 @@ plugins {
     id("kinject2.kotlin-common-conventions")
     `java-library`
 }
+
+kotlin.explicitApi()

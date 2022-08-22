@@ -9,4 +9,4 @@ package com.wokdsem.kinject2
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class Graph
+public annotation class Graph

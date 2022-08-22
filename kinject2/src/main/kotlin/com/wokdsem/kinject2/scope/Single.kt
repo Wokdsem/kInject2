@@ -17,15 +17,15 @@ package com.wokdsem.kinject2.scope
  *
  */
 @JvmInline
-value class Single<T> internal constructor(private val value: Any?) {
-    @Suppress("UNCHECKED_CAST") fun get() = value as T
+public value class Single<T> internal constructor(private val value: Any?) {
+    @Suppress("UNCHECKED_CAST") public fun get(): T = value as T
 }
 
 /**
  * DSL single declaration. Sets a single scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
  */
-inline fun <T> single(provide: () -> T): Single<T> = single(value = provide())
+public inline fun <T> single(provide: () -> T): Single<T> = single(value = provide())
 
 /**
  * Sets a single scoped dependency when used inside a module or graph.
@@ -33,5 +33,5 @@ inline fun <T> single(provide: () -> T): Single<T> = single(value = provide())
  *
  * @see single
  */
-fun <T> single(value: T): Single<T> = Single(value = value)
+public fun <T> single(value: T): Single<T> = Single(value = value)
 

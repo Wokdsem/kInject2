@@ -17,15 +17,15 @@ package com.wokdsem.kinject2.scope
  *
  */
 @JvmInline
-value class ExportedFactory<T> internal constructor(private val value: Any?) {
-    @Suppress("UNCHECKED_CAST") fun get() = value as T
+public value class ExportedFactory<T> internal constructor(private val value: Any?) {
+    @Suppress("UNCHECKED_CAST") public fun get(): T = value as T
 }
 
 /**
  * DSL exported factory declaration. Sets a factory scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
  */
-inline fun <T> exportFactory(provide: () -> T): ExportedFactory<T> = exportFactory(value = provide())
+public inline fun <T> exportFactory(provide: () -> T): ExportedFactory<T> = exportFactory(value = provide())
 
 /**
  * Sets an exported factory scoped dependency when used inside a module or graph.
@@ -33,5 +33,5 @@ inline fun <T> exportFactory(provide: () -> T): ExportedFactory<T> = exportFacto
  *
  * @see exportFactory
  */
-fun <T> exportFactory(value: T): ExportedFactory<T> = ExportedFactory(value = value)
+public fun <T> exportFactory(value: T): ExportedFactory<T> = ExportedFactory(value = value)
 

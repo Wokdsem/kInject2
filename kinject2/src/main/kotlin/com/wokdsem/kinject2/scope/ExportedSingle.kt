@@ -17,15 +17,15 @@ package com.wokdsem.kinject2.scope
  *
  */
 @JvmInline
-value class ExportedSingle<T> internal constructor(private val value: Any?) {
-    @Suppress("UNCHECKED_CAST") fun get() = value as T
+public value class ExportedSingle<T> internal constructor(private val value: Any?) {
+    @Suppress("UNCHECKED_CAST") public fun get(): T = value as T
 }
 
 /**
  * DSL exported single declaration. Sets a single scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
  */
-inline fun <T> exportSingle(provide: () -> T): ExportedSingle<T> = exportSingle(value = provide())
+public inline fun <T> exportSingle(provide: () -> T): ExportedSingle<T> = exportSingle(value = provide())
 
 /**
  * Sets an exported single scoped dependency when used inside a module or graph.
@@ -33,5 +33,5 @@ inline fun <T> exportSingle(provide: () -> T): ExportedSingle<T> = exportSingle(
  *
  * @see exportSingle
  */
-fun <T> exportSingle(value: T): ExportedSingle<T> = ExportedSingle(value = value)
+public fun <T> exportSingle(value: T): ExportedSingle<T> = ExportedSingle(value = value)
 

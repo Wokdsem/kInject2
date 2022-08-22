@@ -17,15 +17,15 @@ package com.wokdsem.kinject2.scope
  *
  */
 @JvmInline
-value class ExportedEager<T> internal constructor(private val value: Any?) {
-    @Suppress("UNCHECKED_CAST") fun get() = value as T
+public value class ExportedEager<T> internal constructor(private val value: Any?) {
+    @Suppress("UNCHECKED_CAST") public fun get(): T = value as T
 }
 
 /**
  * DSL exported eager declaration. Sets an exported eager scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
  */
-inline fun <T> exportEager(provide: () -> T): ExportedEager<T> = exportEager(value = provide())
+public inline fun <T> exportEager(provide: () -> T): ExportedEager<T> = exportEager(value = provide())
 
 /**
  * Sets an exported eager scoped dependency when used inside a module or graph.
@@ -33,5 +33,5 @@ inline fun <T> exportEager(provide: () -> T): ExportedEager<T> = exportEager(val
  *
  * @see exportEager
  */
-fun <T> exportEager(value: T): ExportedEager<T> = ExportedEager(value = value)
+public fun <T> exportEager(value: T): ExportedEager<T> = ExportedEager(value = value)
 

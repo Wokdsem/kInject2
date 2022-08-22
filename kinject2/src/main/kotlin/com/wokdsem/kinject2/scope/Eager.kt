@@ -17,21 +17,21 @@ package com.wokdsem.kinject2.scope
  *
  */
 @JvmInline
-value class Eager<T> internal constructor(private val value: Any?) {
-    @Suppress("UNCHECKED_CAST") fun get() = value as T
+public value class Eager<T> internal constructor(private val value: Any?) {
+    @Suppress("UNCHECKED_CAST") public fun get(): T = value as T
 }
 
 /**
  * DSL eager declaration. Sets an eager scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
  */
-inline fun <T> eager(provide: () -> T): Eager<T> = eager(value = provide())
+public inline fun <T> eager(provide: () -> T): Eager<T> = eager(value = provide())
 
 /**
- * Sets a eager scoped dependency when used inside a module or graph.
+ * Sets an eager scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
  *
  * @see eager
  */
-fun <T> eager(value: T): Eager<T> = Eager(value = value)
+public fun <T> eager(value: T): Eager<T> = Eager(value = value)
 
