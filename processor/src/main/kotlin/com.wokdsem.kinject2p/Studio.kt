@@ -3,6 +3,8 @@ package com.wokdsem.kinject2p
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.symbol.Visibility.INTERNAL
+import com.google.devtools.ksp.symbol.Visibility.PUBLIC
 import com.squareup.kotlinpoet.ksp.toTypeName
 
 internal fun processGraph(graphDeclaration: KSClassDeclaration): Analysis<Graph> {
@@ -50,9 +52,8 @@ private fun KSFunctionDeclaration.indexProvider(): Analysis<Provider?> {
     val returnType = checkNotNull(returnType?.resolve())
     if (returnType.isMarkedNullable) return null.success
     fun toProvider(exported: Boolean, scope: Scope): Analysis<Provider> {
-        val dependencies = parameters.map { param -> param.indexProviderDependency().getOr { return it } }
-        return validateProviderDeclaration().map {
-            val dep = checkNotNull(returnType.arguments.first().type).resolve()
+        return validateProviderDeclaration().flatMap { returnType.indexReturnType() }.map { dep ->
+            val dependencies = parameters.map { param -> param.indexProviderDependency().getOr { return it } }
             Provider(
                 id = dep.id,
                 type = dep, exported = exported, scope = scope, isNullable = dep.isMarkedNullable,
@@ -71,6 +72,10 @@ private fun KSFunctionDeclaration.indexProvider(): Analysis<Provider?> {
     }
 }
 
+private fun KSType.indexReturnType(): Analysis<KSType> {
+    return checkNotNull(arguments.first().type).resolve().validateReturnType()
+}
+
 private fun KSValueParameter.indexProviderDependency(): Analysis<Dependency> {
     return validateProviderDependency().map { dep ->
         with(receiver = dep.type.resolve()) { Dependency(id = id, name = checkNotNull(name).asString(), isNullable = isMarkedNullable) }
@@ -83,7 +88,7 @@ private fun KSClassDeclaration.validateGraphDeclaration(): Analysis<KSClassDecla
     fun error(message: String): Analysis<KSClassDeclaration> = fail(message, this)
     if (classKind != ClassKind.CLASS) return error("Only classes can be annotated as Graphs")
     if (superTypes.any { it.toTypeName().toString() != "kotlin.Any" }) return error("A graph cannot extend other classes or implement any interfaces")
-    if (getVisibility().let { visibility -> visibility != Visibility.PUBLIC && visibility != Visibility.INTERNAL }) return error("Only public or internal visibility modifiers are allowed")
+    if (getVisibility().let { visibility -> visibility != PUBLIC && visibility != INTERNAL }) return error("Only public or internal visibility modifiers are allowed")
     if (typeParameters.isNotEmpty()) return error("A graph cannot be parametrized with generic types")
     return success
 }
@@ -91,9 +96,15 @@ private fun KSClassDeclaration.validateGraphDeclaration(): Analysis<KSClassDecla
 private fun KSFunctionDeclaration.validateProviderDeclaration(): Analysis<KSFunctionDeclaration> {
     fun error(message: String): Analysis<KSFunctionDeclaration> = fail(message, this)
     if (extensionReceiver != null) return error("Extension are not allowed for a dependency provider")
-    if (getVisibility().let { visibility -> visibility != Visibility.PUBLIC && visibility != Visibility.INTERNAL }) return error("Only public or internal visibility modifiers are allowed")
+    if (getVisibility().let { visibility -> visibility != PUBLIC && visibility != INTERNAL }) return error("Only public or internal visibility modifiers are allowed")
     if (Modifier.SUSPEND in modifiers) return error("Suspend function are not allowed for a dependency provider")
     if (typeParameters.isNotEmpty()) return error("A provider cannot be parametrized with generic types")
+    return success
+}
+
+private fun KSType.validateReturnType(): Analysis<KSType> {
+    fun error(message: String): Analysis<KSType> = fail(message, declaration)
+    if (declaration is KSTypeAlias && with(declaration.getVisibility()) { this != PUBLIC && this != INTERNAL }) return error("Only public or internal visibility modifiers are allowed for typealias")
     return success
 }
 

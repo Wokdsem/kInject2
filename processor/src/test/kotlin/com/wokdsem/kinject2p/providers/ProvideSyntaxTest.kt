@@ -108,4 +108,20 @@ class ProvideSyntaxTest {
         asserCompilationError(graph, "KTestGraph", "Vararg param is not allowed")
     }
 
+    @Test
+    fun `assert that when using typealias as return type this must be public or internal`() {
+        val graph = SourceFile.kotlin(
+            "TestGraph.kt", """
+             import com.wokdsem.kinject2.Graph
+             import com.wokdsem.kinject2.scope.factory
+             import com.wokdsem.kinject2.scope.Factory
+             private typealias Times = Int
+             @Graph class TestGraph {
+                fun provideTimes(): Factory<Times> = factory { 5 }
+             }
+        """
+        )
+        asserCompilationError(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed for typealias")
+    }
+
 }
