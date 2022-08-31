@@ -26,6 +26,7 @@ class ProvideSyntaxTest {
             "TestGraph.kt", """
              import com.wokdsem.kinject2.Graph
              import com.wokdsem.kinject2.scope.factory
+             @Suppress("ProtectedInFinal","RedundantSuppression")
              @Graph class TestGraph {
                 protected fun provideString() = factory { "DEP" }
              }
@@ -40,13 +41,13 @@ class ProvideSyntaxTest {
             "TestGraph.kt", """
              import com.wokdsem.kinject2.Graph
              import com.wokdsem.kinject2.scope.factory
-             @Suppress("RedundantSuspendModifier")
+             @Suppress("RedundantSuspendModifier","RedundantSuppression")
              @Graph class TestGraph {
                 suspend fun provideString() = factory { "DEP" }
              }
         """
         )
-        asserCompilationError(graph, "KTestGraph", "Suspend function are not allowed for a dependency provider")
+        asserCompilationError(graph, "KTestGraph", "Suspend functions are not allowed on kInject declarations")
     }
 
     @Test
@@ -60,7 +61,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        asserCompilationError(graph, "KTestGraph", "A provider cannot be parametrized with generic types")
+        asserCompilationError(graph, "KTestGraph", "A kInject declaration cannot be parametrized with generic types")
     }
 
     @Test
@@ -69,13 +70,13 @@ class ProvideSyntaxTest {
             "TestGraph.kt", """
              import com.wokdsem.kinject2.Graph
              import com.wokdsem.kinject2.scope.factory
-             @Suppress("unused")
+             @Suppress("unused","UnusedReceiverParameter","RedundantSuppression")
              @Graph class TestGraph {
                 fun Int.provideString() = factory { "DEP" }
              }
         """
         )
-        asserCompilationError(graph, "KTestGraph", "Extension are not allowed for a dependency provider")
+        asserCompilationError(graph, "KTestGraph", "Extensions are not allowed on kInject declarations")
     }
 
     @Test

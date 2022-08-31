@@ -29,7 +29,7 @@ class ProvideDuplicatedTest {
              import com.wokdsem.kinject2.Graph
              import com.wokdsem.kinject2.scope.factory
              import com.wokdsem.kinject2.scope.Factory
-             private typealias AnotherString = String
+             typealias AnotherString = String
              @Graph class TestGraph {
                 fun provideString() = factory { "First" }
                 fun provideAnotherString():Factory<AnotherString> = factory { "Second" }

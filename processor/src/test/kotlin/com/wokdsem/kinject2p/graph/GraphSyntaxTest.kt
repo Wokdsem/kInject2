@@ -48,7 +48,7 @@ class GraphSyntaxTest {
              @Graph class TestGraph : A()
         """
         )
-        asserCompilationError(graph, "KTestGraph", "A graph cannot extend other classes or implement any interfaces")
+        asserCompilationError(graph, "KTestGraph", "Extend is not accepted for this declaration")
     }
 
     @Test
@@ -59,7 +59,7 @@ class GraphSyntaxTest {
              @Graph class TestGraph<T> 
         """
         )
-        asserCompilationError(graph, "KTestGraph", "A graph cannot be parametrized with generic types")
+        asserCompilationError(graph, "KTestGraph", "This declaration cannot be parametrized with generic types")
     }
 
 }

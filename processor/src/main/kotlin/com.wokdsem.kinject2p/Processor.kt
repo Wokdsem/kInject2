@@ -1,9 +1,6 @@
 package com.wokdsem.kinject2p
 
-import com.google.devtools.ksp.processing.Resolver
-import com.google.devtools.ksp.processing.SymbolProcessor
-import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
-import com.google.devtools.ksp.processing.SymbolProcessorProvider
+import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 
 public class KinjectProcessorProvider : SymbolProcessorProvider {
@@ -14,14 +11,11 @@ public class KinjectProcessor(
     private val environment: SymbolProcessorEnvironment
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        run processor@{
-            resolver.getSymbolsWithAnnotation(GRAPH).filterIsInstance<KSClassDeclaration>().mapTo(mutableListOf()) { graph ->
-                processGraph(graph).getOr { failure ->
-                    failure.error.root.forEach { environment.logger.error(failure.error.message, it) }
-                    return@processor
-                }
-            }.forEach { graph -> generate(graph = graph, codeGenerator = environment.codeGenerator) }
-        }
+        resolver.getSymbolsWithAnnotation(GRAPH).filterIsInstance<KSClassDeclaration>().collect { graph -> processGraphDeclaration(graph) }
+            .fold(
+                onSuccess = { graphs -> graphs.forEach { graph -> generate(graph = graph, codeGenerator = environment.codeGenerator) } },
+                onError = { failure -> failure.errorNodes.forEach { environment.logger.error(failure.message, it) } }
+            )
         return emptyList()
     }
 }

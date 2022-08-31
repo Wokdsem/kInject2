@@ -8,3 +8,5 @@ internal const val EAGER = "com.wokdsem.kinject2.scope.Eager"
 internal const val EXPORTED_FACTORY = "com.wokdsem.kinject2.scope.ExportedFactory"
 internal const val EXPORTED_SINGLE = "com.wokdsem.kinject2.scope.ExportedSingle"
 internal const val EXPORTED_EAGER = "com.wokdsem.kinject2.scope.ExportedEager"
+
+internal const val EXPORT = "com.wokdsem.kinject2.export.Export"

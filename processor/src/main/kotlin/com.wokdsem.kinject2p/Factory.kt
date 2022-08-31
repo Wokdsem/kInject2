@@ -1,0 +1,96 @@
+package com.wokdsem.kinject2p
+
+import com.google.devtools.ksp.getVisibility
+import com.google.devtools.ksp.processing.CodeGenerator
+import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.KModifier.*
+import com.squareup.kotlinpoet.ksp.toClassName
+import com.squareup.kotlinpoet.ksp.toKModifier
+import com.squareup.kotlinpoet.ksp.toTypeName
+import com.squareup.kotlinpoet.ksp.writeTo
+
+private const val GRAPH_PARAM = "graph"
+
+private val suppress = listOf(
+    "RedundantSuppression", "PrivatePropertyName", "RemoveRedundantBackticks", "RedundantVisibilityModifier", "PropertyName", "RemoveRedundantQualifierName", "unused"
+)
+
+internal fun generate(graph: Graph, codeGenerator: CodeGenerator) {
+    val root = graph.root
+    val graphClass = root.toClassName()
+    val graphVisibility = checkNotNull(root.getVisibility().toKModifier())
+    val kGraphPackage = root.packageName.asString()
+    val kGraphName = "K${root.simpleName.getShortName()}"
+    val kGraphClass = ClassName(kGraphPackage, kGraphName)
+    FileSpec.builder(kGraphPackage, kGraphName).addType(
+        TypeSpec.classBuilder(kGraphName).apply {
+            addAnnotation(AnnotationSpec.builder(Suppress::class).apply { suppress.onEach { addMember("%S", it) } }.build())
+            primaryConstructor(primaryConstructor = FunSpec.constructorBuilder().addParameter(GRAPH_PARAM, graphClass).addModifiers(PRIVATE).build())
+            addProperty(propertySpec = PropertySpec.builder(GRAPH_PARAM, graphClass).initializer(GRAPH_PARAM).addModifiers(PRIVATE).build())
+            addType(typeSpec = getCompanionBuilder(graphClass, kGraphClass, graphVisibility))
+            getExportedProperties(graph.exporters).forEach(::addProperty)
+            graph.providers.forEach { provider -> addProperty(propertySpec = getProviderProperty(provider)) }
+        }.build()
+    ).build().writeTo(codeGenerator = codeGenerator, aggregating = false, originatingKSFiles = graph.files)
+}
+
+private fun getCompanionBuilder(graphClass: TypeName, kGraphClass: TypeName, visibility: KModifier): TypeSpec {
+    return TypeSpec.companionObjectBuilder().addFunction(
+        FunSpec.builder("from").addModifiers(visibility).addParameter(GRAPH_PARAM, graphClass).returns(kGraphClass).addStatement("return %T($GRAPH_PARAM)", kGraphClass).build()
+    ).build()
+}
+
+private fun getExportedProperties(exporters: List<Exporter>): List<PropertySpec> {
+    val regex = """^([^<]+)\b(?:<(.+)>)?$""".toRegex()
+    fun List<Exporter>.name(grade: Int = 1): List<Pair<String, Exporter>> {
+        fun String.onGrade(): String {
+            var counter = grade
+            return takeLastWhile { it != '.' || --counter > 0 }
+        }
+
+        fun String.name(): String {
+            if (regex.matchEntire(this) == null) error(this)
+            val (type, generic) = checkNotNull(regex.matchEntire(this)).destructured
+            val typePart = type.onGrade().replace(".", "").replace("_", "__")
+            val genericPart = generic.takeIf(String::isNotEmpty)?.let { "_of${it.split(", ").joinToString(separator = "_and", transform = String::name)}" }.orEmpty()
+            return typePart + genericPart
+        }
+        return groupBy { exporter -> exporter.id.id.name().replaceFirstChar(Char::lowercase) }.entries.flatMap { (name, exporters) ->
+            if (exporters.size == 1) listOf(element = name to exporters.first()) else exporters.name(grade + 1)
+        }
+    }
+    return exporters.name().map { (name, exporter) ->
+        PropertySpec.builder(name, exporter.node.toTypeName(), PUBLIC).apply {
+            when (val type = exporter.type) {
+                Exporter.Type.Delegated -> getter(getter = FunSpec.getterBuilder().addStatement("return ${exporter.id.valName()}").build())
+                is Exporter.Type.Bracket -> {
+                    val superInterface = exporter.node.toTypeName()
+                    val exportCode = "${GRAPH_PARAM}.${exporter.reference}()"
+                    val properties = type.dependencies.map { dependency ->
+                        PropertySpec.builder(dependency.name, dependency.node.toTypeName(), OVERRIDE).apply {
+                            getter(getter = FunSpec.getterBuilder().addStatement("return ${dependency.id.valName()}").build())
+                        }.build()
+                    }
+                    val exporterInstance = TypeSpec.anonymousClassBuilder().addSuperinterface(superInterface).apply { properties.forEach(::addProperty) }.build()
+                    delegate(
+                        codeBlock = CodeBlock.builder().beginControlFlow("lazy").addStatement(exportCode).add(format = "$exporterInstance\n").endControlFlow().build()
+                    )
+                }
+            }
+        }.build()
+    }
+}
+
+private fun getProviderProperty(provider: Provider): PropertySpec {
+    return PropertySpec.builder(provider.id.valName(), provider.node.toTypeName(), PRIVATE).apply {
+        val dependencies = provider.dependencies.joinToString(separator = ",") { "${it.name} = ${it.id.valName()}" }
+        val propertyCode = "${GRAPH_PARAM}.${provider.reference}($dependencies).get()"
+        when (provider.scope) {
+            Scope.FACTORY -> getter(getter = FunSpec.getterBuilder().addStatement("return $propertyCode").build())
+            Scope.EAGER -> initializer(format = propertyCode)
+            Scope.SINGLE -> delegate(codeBlock = CodeBlock.builder().beginControlFlow("lazy").add(propertyCode).endControlFlow().build())
+        }
+    }.build()
+}
+
+private fun Id.valName() = "`_${id.replace("_", "__").replace("""[<>.]""".toRegex(), "_")}`"
