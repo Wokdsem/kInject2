@@ -2,29 +2,49 @@ package com.wokdsem.kinject2p
 
 import com.google.devtools.ksp.getDeclaredFunctions
 import com.google.devtools.ksp.getDeclaredProperties
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.symbol.Visibility.PUBLIC
+import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.wokdsem.kinject2p.Exporter.Type.Bracket
 import com.wokdsem.kinject2p.Statement.Declaration
+import com.wokdsem.kinject2p.Statement.Import
 
 internal fun processGraphDeclaration(graphDeclaration: KSClassDeclaration): Analysis<Graph> {
-    return graphDeclaration.collectGraph()
-        .validate { rawGraph -> validateExporters(rawGraph.exporters, rawGraph.providersIndex) }
-        .validate { rawGraph -> validateProvidersGraph(rawGraph.providersIndex) }
-        .map { rawGraph -> with(rawGraph) { Graph(root = root, files = files, providers = providersIndex.values.toList(), exporters = exporters.values.toList()) } }
+    return graphDeclaration.collectGraph().validate { rawGraph -> validateExporters(rawGraph.exporters, rawGraph.providersIndex) }
+        .validate { rawGraph -> validateProvidersGraph(rawGraph.providersIndex) }.map { rawGraph ->
+            with(rawGraph) { Graph(root = root, files = files, modules = modules, providers = providersIndex.values.toList(), exporters = exporters.values.toList()) }
+        }
 }
 
 private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
-    val graphFile = containingFile ?: return fail("Unexpected non-backed file class", this)
     return validateGraphDeclaration().flatMap { graph ->
-        val files = mutableListOf(graphFile)
+        val files = mutableListOf<KSFile>()
+        val graphId = id
+        val modulesIndex = mutableMapOf<Id, Module>()
         val providersIndex = mutableMapOf<Id, Provider>()
         val exportersIndex = mutableMapOf<Id, Exporter>()
 
-        fun KSClassDeclaration.process(): Analysis<Unit> {
+        fun KSClassDeclaration.process(): Analysis<Int> {
+
+            var providerCounter = 0
+
+            fun appendModule(import: Import): Analysis<Unit> {
+                fun clashError(clash: KSDeclaration) = fail<Unit>("Modules clash, a module can be imported only once", clash, import.declaration)
+                val module = with(import) { Module(id = node.id, node = node, source = id, declaration = this.declaration) }
+                if (module.id == graphId) return clashError(this@collectGraph)
+                modulesIndex.put(module.id, module)?.let { previousModule -> return clashError(previousModule.declaration) }
+                return import.nodeDeclaration.process().validate { counter ->
+                    if (counter == 0) fail("A module must provide at least one dependency", import.declaration) else SUCCESS
+                }.onSuccess { counter -> providerCounter += counter }.map { }
+            }
 
             fun appendProvider(declaration: Declaration, scope: Scope): Analysis<Unit> {
-                val provider = with(declaration) { Provider(id = id, node = node, dependencies = dependencies, scope = scope, declaration = this.declaration) }
+                providerCounter++
+                val provider = with(declaration) {
+                    Provider(id = node.id, scope = scope, node = node, dependencies = dependencies, source = id, declaration = this.declaration)
+                }
                 val previousProvider = providersIndex.put(provider.id, provider) ?: return SUCCESS
                 val failureMessage = "Providers clash, a dependency type can only be provided once - typealias may help to break the clash"
                 return fail(message = failureMessage, provider.declaration, previousProvider.declaration)
@@ -32,15 +52,18 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
 
             fun appendExporter(declaration: Declaration, delegated: Boolean): Analysis<Unit> {
                 val exporterType = if (delegated) Exporter.Type.Delegated else Bracket(dependencies = declaration.dependencies)
-                val exporter = with(declaration) { Exporter(id = id, node = node, type = exporterType, declaration = this.declaration) }
+                val exporter = with(declaration) { Exporter(id = node.id, node = node, type = exporterType, declaration = this.declaration) }
                 val previousExporter = exportersIndex.put(exporter.id, exporter) ?: return SUCCESS
                 return fail(message = "Exporters clash, an exporter can only be declared once", exporter.declaration, previousExporter.declaration)
             }
 
-            return getDeclaredFunctions().onEachUntilError { method ->
-                method.processStatement().flatMap { statement ->
+            containingFile?.let { file -> files += file }
+            val requirePublicVisibility = getVisibility() == PUBLIC
+            return getDeclaredFunctions().filter { declaration -> declaration.getVisibility() == PUBLIC }.onEachUntilError { method ->
+                method.processStatement(requirePublicVisibility).flatMap { statement ->
                     when (statement) {
                         Statement.Irrelevant -> SUCCESS
+                        is Import -> appendModule(statement)
                         is Declaration -> {
                             fun appendExported(scope: Scope) = appendProvider(statement, scope).flatMap { appendExporter(statement, true) }
                             when (statement.type) {
@@ -55,10 +78,10 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
                         }
                     }
                 }
-            }
+            }.map { providerCounter }
         }
 
-        return graph.process().map { RawGraph(root = this, files = files, providersIndex = providersIndex, exporters = exportersIndex) }
+        return graph.process().map { RawGraph(root = this, files = files, modules = modulesIndex.values.toList(), providersIndex = providersIndex, exporters = exportersIndex) }
     }
 }
 
@@ -94,15 +117,24 @@ private fun validateProvidersGraph(providers: Map<Id, Provider>): Analysis<Unit>
     return SUCCESS
 }
 
-private fun KSFunctionDeclaration.processStatement(): Analysis<Statement> {
+private fun KSFunctionDeclaration.processStatement(publicVisibilityRequired: Boolean): Analysis<Statement> {
     val returnType = checkNotNull(returnType?.resolve())
 
-    fun getStatementType() = validateDeclaration().flatMap { checkNotNull(returnType.arguments.first().type).resolve().validateReturnType() }
+    fun getStatementType() = validateDeclaration().flatMap { checkNotNull(returnType.arguments.first().type).resolve().validateReturnType(this, publicVisibilityRequired) }
+
+    fun asImportStatement(): Analysis<Statement> {
+        if (!validateEmptyParameters()) return fail("Import declaration does not accept parameters", this)
+        return getStatementType().flatMap { statementType ->
+            statementType.declaration.validateImportDeclaration().map { import ->
+                Import(node = statementType, nodeDeclaration = import, declaration = this)
+            }
+        }
+    }
 
     fun asProviderStatement(type: Declaration.Type): Analysis<Statement> {
         return getStatementType().flatMap { statementType ->
             parameters.asSequence().collect { param -> param.processProviderDependency() }.map { dependencies ->
-                Declaration(id = statementType.id, type = type, node = statementType, dependencies = dependencies, declaration = this)
+                Declaration(type = type, node = statementType, dependencies = dependencies, declaration = this)
             }
         }
     }
@@ -112,7 +144,7 @@ private fun KSFunctionDeclaration.processStatement(): Analysis<Statement> {
         return getStatementType().flatMap { statementType ->
             statementType.declaration.validateExportDeclaration().flatMap { export ->
                 export.getDeclaredProperties().collect { property -> property.processExporterDependency() }.map { dependencies ->
-                    Declaration(id = statementType.id, type = Declaration.Type.EXPORT, node = statementType, dependencies = dependencies, declaration = this)
+                    Declaration(type = Declaration.Type.EXPORT, node = statementType, dependencies = dependencies, declaration = this)
                 }
             }
         }
@@ -120,6 +152,7 @@ private fun KSFunctionDeclaration.processStatement(): Analysis<Statement> {
 
     if (returnType.isMarkedNullable) return Statement.IRRELEVANT
     return when (returnType.declaration.qualifiedName?.asString()) {
+        IMPORT -> asImportStatement()
         FACTORY -> asProviderStatement(type = Declaration.Type.FACTORY)
         SINGLE -> asProviderStatement(type = Declaration.Type.SINGLE)
         EAGER -> asProviderStatement(type = Declaration.Type.EAGER)
@@ -143,13 +176,20 @@ private fun KSPropertyDeclaration.processExporterDependency(): Analysis<Dependen
     }
 }
 
+private val KSClassDeclaration.id get() = Id(id = toClassName().toString())
 private val KSType.id get() = Id(id = (if (isMarkedNullable) makeNotNullable() else this).toTypeName().toString())
 
 private fun KSClassDeclaration.validateGraphDeclaration(): Analysis<KSClassDeclaration> {
     return validateDeclarationClass().flatMap {
+        if (!validateVisibility()) return@flatMap fail("Only public or internal visibility modifiers are allowed for graphs", this)
         if (!validateClassType()) return@flatMap fail("Only classes can be annotated as Graphs", this)
         success
     }
+}
+
+private fun KSDeclaration.validateImportDeclaration(): Analysis<KSClassDeclaration> {
+    if (this !is KSClassDeclaration) return fail("Only a variant of class declaration can be imported", this)
+    return validateDeclarationClass()
 }
 
 private fun KSDeclaration.validateExportDeclaration(): Analysis<KSClassDeclaration> {
@@ -165,22 +205,25 @@ private fun KSDeclaration.validateExportDeclaration(): Analysis<KSClassDeclarati
 }
 
 private fun KSClassDeclaration.validateDeclarationClass(): Analysis<KSClassDeclaration> {
-    if (!validateInheritance()) return fail("Extend is not accepted for this declaration", this)
-    if (!validateVisibility()) return fail("Only public or internal visibility modifiers are allowed", this)
     if (!validateGenerics()) return fail("This declaration cannot be parametrized with generic types", this)
+    if (!validateInheritance()) return fail("Extend is not accepted for this declaration", this)
     return success
 }
 
 private fun KSFunctionDeclaration.validateDeclaration(): Analysis<KSFunctionDeclaration> {
     if (!validateExtension()) return fail("Extensions are not allowed on kInject declarations", this)
-    if (!validateVisibility()) return fail("Only public or internal visibility modifiers are allowed for kInject declarations", this)
     if (!validateSuspend()) return fail("Suspend functions are not allowed on kInject declarations", this)
     if (!validateGenerics()) return fail("A kInject declaration cannot be parametrized with generic types", this)
     return success
 }
 
-private fun KSType.validateReturnType(): Analysis<KSType> {
-    if (declaration is KSTypeAlias && !declaration.validateVisibility()) return fail("Only public or internal visibility modifiers are allowed for typealias", declaration)
+private fun KSType.validateReturnType(fDeclaration: KSFunctionDeclaration, publicVisibilityRequired: Boolean): Analysis<KSType> {
+    if (declaration !is KSTypeAlias) return success
+    fun fail(message: String) = fail<KSType>(message, fDeclaration, declaration)
+    when {
+        !publicVisibilityRequired -> if (!declaration.validateVisibility()) return fail("Only public or internal visibility modifiers are allowed for typealias")
+        !declaration.validatePublicVisibility() -> return fail("Typealias visibility must not be more restrictive than the class where it's used")
+    }
     return success
 }
 
@@ -196,7 +239,7 @@ private fun KSPropertyDeclaration.validateExportDependency(): Analysis<KSPropert
     return success
 }
 
-private class RawGraph(val root: KSClassDeclaration, val files: List<KSFile>, val providersIndex: Map<Id, Provider>, val exporters: Map<Id, Exporter>)
+private class RawGraph(val root: KSClassDeclaration, val files: List<KSFile>, val modules: List<Module>, val providersIndex: Map<Id, Provider>, val exporters: Map<Id, Exporter>)
 
 private sealed interface Statement {
     companion object {
@@ -204,7 +247,8 @@ private sealed interface Statement {
     }
 
     object Irrelevant : Statement
-    class Declaration(val id: Id, val type: Type, val node: KSType, val dependencies: List<Dependency>, val declaration: KSFunctionDeclaration) : Statement {
+    class Import(val node: KSType, val nodeDeclaration: KSClassDeclaration, val declaration: KSFunctionDeclaration) : Statement
+    class Declaration(val type: Type, val node: KSType, val dependencies: List<Dependency>, val declaration: KSFunctionDeclaration) : Statement {
         enum class Type { FACTORY, SINGLE, EAGER, EXPORT, EXPORTED_FACTORY, EXPORTED_SINGLE, EXPORTED_EAGER }
     }
 }

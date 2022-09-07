@@ -2,7 +2,8 @@ package com.wokdsem.kinject2.app
 
 import com.wokdsem.kinject2.Graph
 import com.wokdsem.kinject2.export.export
-import com.wokdsem.kinject2.scope.*
+import com.wokdsem.kinject2.scope.factory
+import com.wokdsem.kinject2.scope.single
 
 @Graph
 class ApplicationGraph {
@@ -17,7 +18,7 @@ fun main() {
 }
 
 interface Movies {
-    val adviser: MoviesAdviser
+    val adviser: MoviesAdviser get() = MoviesAdviser(service = LocalMoviesService())
 }
 
 class MoviesAdviser(private val service: MoviesService) {

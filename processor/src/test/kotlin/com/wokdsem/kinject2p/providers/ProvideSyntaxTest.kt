@@ -7,35 +7,6 @@ import org.junit.jupiter.api.Test
 class ProvideSyntaxTest {
 
     @Test
-    fun `assert that private is not a valid visibility for providers`() {
-        val graph = SourceFile.kotlin(
-            "TestGraph.kt", """
-             import com.wokdsem.kinject2.Graph
-             import com.wokdsem.kinject2.scope.factory
-             @Graph class TestGraph {
-                private fun provideString() = factory { "DEP" }
-             }
-        """
-        )
-        asserCompilationError(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
-    }
-
-    @Test
-    fun `assert that protected is not a valid visibility for providers`() {
-        val graph = SourceFile.kotlin(
-            "TestGraph.kt", """
-             import com.wokdsem.kinject2.Graph
-             import com.wokdsem.kinject2.scope.factory
-             @Suppress("ProtectedInFinal","RedundantSuppression")
-             @Graph class TestGraph {
-                protected fun provideString() = factory { "DEP" }
-             }
-        """
-        )
-        asserCompilationError(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed")
-    }
-
-    @Test
     fun `assert that suspend is not a valid modifier for providers`() {
         val graph = SourceFile.kotlin(
             "TestGraph.kt", """
@@ -110,7 +81,7 @@ class ProvideSyntaxTest {
     }
 
     @Test
-    fun `assert that when using typealias as return type this must be public or internal`() {
+    fun `assert that when using typealias its visibility must not be more restrictive than the visibility of the class where it's declared`() {
         val graph = SourceFile.kotlin(
             "TestGraph.kt", """
              import com.wokdsem.kinject2.Graph
@@ -122,7 +93,7 @@ class ProvideSyntaxTest {
              }
         """
         )
-        asserCompilationError(graph, "KTestGraph", "Only public or internal visibility modifiers are allowed for typealias")
+        asserCompilationError(graph, "KTestGraph", "Typealias visibility must not be more restrictive than the class where it's used")
     }
 
 }

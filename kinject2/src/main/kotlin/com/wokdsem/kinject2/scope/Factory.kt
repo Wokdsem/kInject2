@@ -15,6 +15,14 @@ package com.wokdsem.kinject2.scope
  * If defined in the graph, kInject will supply the dependencies to the method where this factory is returned. A compilation error
  * will be thrown if dependencies cannot be satisfied.
  *
+ *  A factory declaration is considered valid if and only if its definition does not break any of the following constraints:
+ *  The function parameters don't set a default value
+ *  The function parameters are not Vararg
+ *  The function declaration is not an extension receiver
+ *  The function declaration is not a suspend function
+ *  The function declaration does not set generic types
+ *  When using a Typealias, the visibility of the Typealias is no more restrictive than the visibility of the class where the declaration is defined
+ *
  */
 @JvmInline
 public value class Factory<T> internal constructor(private val value: Any?) {
@@ -24,6 +32,8 @@ public value class Factory<T> internal constructor(private val value: Any?) {
 /**
  * DSL factory declaration. Sets a factory scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
+ *
+ * @see Factory
  */
 public inline fun <T> factory(provide: () -> T): Factory<T> = factory(value = provide())
 
@@ -32,6 +42,7 @@ public inline fun <T> factory(provide: () -> T): Factory<T> = factory(value = pr
  * Set the type T to override the default Kotlin type inference.
  *
  * @see factory
+ * @see Factory
  */
 public fun <T> factory(value: T): Factory<T> = Factory(value = value)
 

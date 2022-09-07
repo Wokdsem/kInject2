@@ -15,6 +15,15 @@ package com.wokdsem.kinject2.scope
  * If defined in the graph, kInject will supply the dependencies to the method where this exportedFactory is returned. A compilation error
  * will be thrown if dependencies cannot be satisfied.
  *
+ *  An exportedFactory declaration is considered valid if and only if its definition does not break any of the following constraints:
+ *  The function parameters don't set a default value
+ *  The function parameters are not Vararg
+ *  The function declaration is not an extension receiver
+ *  The function declaration is not a suspend function
+ *  The function declaration does not set generic types
+ *  When using a Typealias, the visibility of the Typealias is no more restrictive than the visibility of the class where the declaration is defined
+ *
+ *
  */
 @JvmInline
 public value class ExportedFactory<T> internal constructor(private val value: Any?) {
@@ -24,6 +33,8 @@ public value class ExportedFactory<T> internal constructor(private val value: An
 /**
  * DSL exported factory declaration. Sets a factory scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
+ *
+ * @see ExportedFactory
  */
 public inline fun <T> exportFactory(provide: () -> T): ExportedFactory<T> = exportFactory(value = provide())
 
@@ -32,6 +43,7 @@ public inline fun <T> exportFactory(provide: () -> T): ExportedFactory<T> = expo
  * Set the type T to override the default Kotlin type inference.
  *
  * @see exportFactory
+ * @see ExportedFactory
  */
 public fun <T> exportFactory(value: T): ExportedFactory<T> = ExportedFactory(value = value)
 

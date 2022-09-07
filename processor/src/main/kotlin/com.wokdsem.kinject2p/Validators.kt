@@ -6,6 +6,7 @@ import com.google.devtools.ksp.symbol.Visibility.INTERNAL
 import com.google.devtools.ksp.symbol.Visibility.PUBLIC
 import com.squareup.kotlinpoet.ksp.toTypeName
 
+internal fun KSDeclaration.validatePublicVisibility(): Boolean = getVisibility() == PUBLIC
 internal fun KSDeclaration.validateVisibility(): Boolean = with(getVisibility()) { this == PUBLIC || this == INTERNAL }
 internal fun KSDeclaration.validateGenerics(): Boolean = typeParameters.isEmpty()
 
@@ -16,7 +17,6 @@ internal fun KSClassDeclaration.validateSealedCondition(): Boolean = Modifier.SE
 
 internal fun KSFunctionDeclaration.validateExtension(): Boolean = extensionReceiver == null
 internal fun KSFunctionDeclaration.validateEmptyParameters(): Boolean = parameters.isEmpty()
-internal fun KSFunctionDeclaration.validateVisibility(): Boolean = with(getVisibility()) { this == PUBLIC || this == INTERNAL }
 internal fun KSFunctionDeclaration.validateSuspend(): Boolean = Modifier.SUSPEND !in modifiers
 internal fun KSFunctionDeclaration.validateGenerics(): Boolean = typeParameters.isEmpty()
 

@@ -28,6 +28,7 @@ internal inline fun <T, R> Analysis<T>.flatMap(mapper: (T) -> Analysis<R>): Anal
 
 internal inline fun <T> Analysis<T>.validate(validator: (T) -> Analysis<Unit>): Analysis<T> = rawFold(onSuccess = { validator(it.result).flatMap { this } }, onError = { this })
 
+internal inline fun <T> Analysis<T>.onSuccess(onSuccess: (T) -> Unit): Analysis<T> = this.also { if (this is Analysis.Success) onSuccess(result) }
 internal inline fun <T, R> Analysis<T>.fold(onSuccess: (T) -> R, onError: (Error) -> R): R = rawFold(onSuccess = { onSuccess(it.result) }, onError = { onError(it.error) })
 
 internal inline fun <T> Analysis<T>.getOr(or: (Failure) -> T): T = rawFold(onSuccess = { it.result }, onError = or)

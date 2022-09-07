@@ -123,4 +123,20 @@ class ExportSyntaxTest {
         asserCompilationError(graph, "KTestGraph", "Extension is not allowed for exported property")
     }
 
+    @Test
+    fun `assert that a typealias is not expected to be exported`() {
+        val graph = SourceFile.kotlin(
+            "TestGraph.kt", """
+             import com.wokdsem.kinject2.Graph
+             import com.wokdsem.kinject2.export.export
+             typealias Alias = E
+             @Graph class TestGraph {
+                fun exportE() = export<Alias>()
+             }
+             interface E
+        """
+        )
+        asserCompilationError(graph, "KTestGraph", "Only interfaces can be exported")
+    }
+
 }

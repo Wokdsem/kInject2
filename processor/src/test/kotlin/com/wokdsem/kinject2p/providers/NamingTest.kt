@@ -27,7 +27,7 @@ class NamingTest {
             "TestGraph.kt", """
              import com.wokdsem.kinject2.Graph
              import com.wokdsem.kinject2.scope.exportFactory
-             @Suppress("ClassName")
+             @Suppress("ClassName","RedundantSuppression")
              class _Dep2
              @Graph class TestGraph {
                 fun provideDep2() = exportFactory { _Dep2() }
@@ -65,7 +65,7 @@ class NamingTest {
             "TestGraph.kt", """
              import com.wokdsem.kinject2.Graph
              import com.wokdsem.kinject2.scope.exportFactory
-             @Suppress("ClassName")
+             @Suppress("ClassName","RedundantSuppression")
              @Graph class TestGraph {
                 fun providePair() = exportFactory { "key" to 5 }
              }

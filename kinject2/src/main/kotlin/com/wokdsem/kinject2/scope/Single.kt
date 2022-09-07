@@ -15,6 +15,14 @@ package com.wokdsem.kinject2.scope
  * If defined in the graph, kInject will supply the dependencies to the method where this single is returned. A compilation error
  * will be thrown if dependencies cannot be satisfied.
  *
+ * A single declaration is considered valid if and only if its definition does not break any of the following constraints:
+ *  The function parameters don't set a default value
+ *  The function parameters are not Vararg
+ *  The function declaration is not an extension receiver
+ *  The function declaration is not a suspend function
+ *  The function declaration does not set generic types
+ *  When using a Typealias, the visibility of the Typealias is no more restrictive than the visibility of the class where the declaration is defined
+ *
  */
 @JvmInline
 public value class Single<T> internal constructor(private val value: Any?) {
@@ -24,6 +32,8 @@ public value class Single<T> internal constructor(private val value: Any?) {
 /**
  * DSL single declaration. Sets a single scoped dependency when used inside a module or graph.
  * Set the type T to override the default Kotlin type inference.
+ *
+ * @see Single
  */
 public inline fun <T> single(provide: () -> T): Single<T> = single(value = provide())
 
@@ -32,6 +42,7 @@ public inline fun <T> single(provide: () -> T): Single<T> = single(value = provi
  * Set the type T to override the default Kotlin type inference.
  *
  * @see single
+ * @see Single
  */
 public fun <T> single(value: T): Single<T> = Single(value = value)
 
