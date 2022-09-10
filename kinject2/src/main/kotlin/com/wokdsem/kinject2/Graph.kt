@@ -30,7 +30,7 @@ import com.wokdsem.kinject2.scope.*
  *  }
  *
  *  class Module {
- *    fun provideText() = single { "Hello world!" }
+ *    fun provideText(times: Int) = single { "*".repeat(times) }
  *  }
  *
  *  interface Export {
@@ -39,7 +39,7 @@ import com.wokdsem.kinject2.scope.*
  *  }
  * ```
  *
- * A graph is considered a valid graph if and only if does not break any of the following constraints:
+ * A graph is considered a valid graph if, and only if, it does not break any of the following constraints:
  *  Graph visibility must be public or internal
  *  Graphs cannot extend any classes other than Any
  *  Graphs have not generic types associated
