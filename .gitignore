@@ -1,8 +1,9 @@
-
+/build
 /buildSrc/.gradle/
 /buildSrc/build/
 /examples/build/
-/kinject2/build/
-/processor/build/
+/kinject/build/
+/kotlin-js-store/
+/compiler/build/
 /.gradle/
 /.idea/

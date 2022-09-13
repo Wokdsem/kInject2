@@ -215,9 +215,76 @@ fun main() {
 }
 ```  
 
-## Install
+## Setup
 
-TDB
+*KSP*
+
+First, apply the KSP plugin in your build.gradle: 
+
+```kotlin
+plugins {
+    id("com.google.devtools.ksp") version "1.7.10-1.0.6"
+}
+```
+
+#### Kotlin(JVM) - Android
+
+For Kotlin(JVM) or Android targets, check both, kinject and compiler, are added as follows in your build.gradle:
+
+```kotlin
+repositories {
+    mavenCentral()    
+}
+
+dependencies {
+    implementation(project(":kinject"))
+    ksp(project(":compiler"))
+}
+```
+
+Last, add the following declaration so your IDE is able to index generated code.
+
+```kotlin
+kotlin {
+    sourceSets.main {
+        kotlin.srcDir("build/generated/ksp/main/kotlin")
+    }
+}
+```
+
+#### Multiplatform
+
+For a multiplatform target, check both, kinject and compiler, are added as follows in your build.gradle:
+
+```kotlin
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.0.0")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.0.0")
+}
+```
+
+For further information about how to set up a KSP dependency for other compilation targets other than CommonMain, please follow this [link](https://kotlinlang.org/docs/ksp-multiplatform.html).
+
+Last, add the following declarations so your IDE is able to index generated multiplatform code and 
+
+```kotlin
+kotlin {
+    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin") }
+}
+
+afterEvaluate {
+    tasks {
+        withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
+            if (name != "kspCommonMainKotlinMetadata") dependsOn("kspCommonMainKotlinMetadata")
+        }
+    }
+}
+```
+**Adjust declaration when targeting other platforms.*
 
 ## Why kInject2?
 
