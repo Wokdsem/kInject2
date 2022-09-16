@@ -169,7 +169,7 @@ fun main() {
 
 Congratulations, you got your graph. However, if you try to use it, you'll see there's nothing accessible there. There's still one last step.
 
-#### Export 
+#### Export
 
 k2 requires that you make dependencies publicly accessible explicitly. For that, use the export declaration and set an interface that contains the types you need to export.   
 You can add as many export declarations as you need. A compile-time error will be thrown if asking to export a dependency that is not part of the graph.
@@ -177,13 +177,13 @@ You can add as many export declarations as you need. A compile-time error will b
 ```kotlin
 @Graph
 class MyFirstGraph {
-    
+
     fun provideNumber() = single { 8 }
     fun provideText(times: Int) = single { "*".repeat(times) }
     fun providePrinter() = single { Printer { message -> println(message) } }
-    
+
     fun exportDeps() = export<Deps>()
-    
+
 }
 
 interface Deps {
@@ -204,7 +204,7 @@ k2 provides a variation of the scope declaration to export the type directly. Th
 ```exportSingle```, ```exportEager```, ```exportFactory```.
 
 ```kotlin
-@Graph 
+@Graph
 class MyFirstGraph {
     fun providePrinter() = exportSingle { Printer { message -> println(message) } }
 }
@@ -217,9 +217,9 @@ fun main() {
 
 ## Setup
 
-*KSP*
+#### KSP 
 
-First, apply the KSP plugin in your build.gradle: 
+First, apply the KSP plugin in your project build.gradle:
 
 ```kotlin
 plugins {
@@ -232,23 +232,17 @@ plugins {
 For Kotlin(JVM) or Android targets, check both, kinject and compiler, are added as follows in your build.gradle:
 
 ```kotlin
+plugins {
+    id("com.google.devtools.ksp")
+}
+
 repositories {
-    mavenCentral()    
+    mavenCentral()
 }
 
 dependencies {
-    implementation(project(":kinject"))
-    ksp(project(":compiler"))
-}
-```
-
-Last, add the following declaration so your IDE is able to index generated code.
-
-```kotlin
-kotlin {
-    sourceSets.main {
-        kotlin.srcDir("build/generated/ksp/main/kotlin")
-    }
+    implementation("com.wokdsem.kinject:kinject:2.0.0")
+    ksp("com.wokdsem.kinject:compiler:2.0.0")
 }
 ```
 
@@ -257,6 +251,10 @@ kotlin {
 For a multiplatform target, check both, kinject and compiler, are added as follows in your build.gradle:
 
 ```kotlin
+plugins {
+    id("com.google.devtools.ksp")
+}
+
 repositories {
     mavenCentral()
 }
@@ -264,16 +262,6 @@ repositories {
 dependencies {
     commonMainImplementation("com.wokdsem.kinject:kinject:2.0.0")
     add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.0.0")
-}
-```
-
-For further information about how to set up a KSP dependency for other compilation targets other than CommonMain, please follow this [link](https://kotlinlang.org/docs/ksp-multiplatform.html).
-
-Last, add the following declarations so your IDE is able to index generated multiplatform code and 
-
-```kotlin
-kotlin {
-    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin") }
 }
 
 afterEvaluate {
@@ -284,7 +272,25 @@ afterEvaluate {
     }
 }
 ```
+
+For further information about how to set up a KSP dependency for other compilation targets other than CommonMain, please follow
+this [link](https://kotlinlang.org/docs/ksp-multiplatform.html).
+
+#### Generated code
+
+Last, add the following declarations so that your IDE is able to index the generated multiplatform code.
+
+```kotlin
+kotlin {
+    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp") }
+}
+```
+
 **Adjust declaration when targeting other platforms.*
+
+## Incremental compilation
+
+Incremental compilation is enabled by default. A graph compilation is reused as long as the graph definition remains stable.
 
 ## Why kInject2?
 
