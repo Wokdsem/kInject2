@@ -118,6 +118,26 @@ class MyFirstGraph {
 }
 ```
 
+#### Optional types
+
+You can mark dependencies as optional in your declarations. The declared type will be added to the graph and can be used as usual. However, 
+if a type that was declared as optional is set as dependency of a dependency, this must set the optionality too, otherwise, an
+error will be thrown in compile-time. A non-optional declaration can resolve both, optional and non-optional dependencies. 
+
+```kotlin
+@Graph
+class MyFirstGraph {
+    fun provideNonOptionalText() = single { "Text" }
+    fun provideOptionalNumber() = single<Int?> { null }
+    fun provideTextAndNumber(text: String?, number: Int?) = single {
+        // text will be supplied by the first declaration as a non-optional type can resolve optional
+        // number will be supplied by the second declaration, compilation fails if number isn't marked as optional
+        TextAndNumber(text = text, number = number)
+    }
+}
+data class OptionalTextAndNumber(val text: String?, val number: Int?)
+```
+
 #### Function type
 
 Sometimes, you may need to instantiate dependencies that have dependencies that are only known in runtime. For these cases, providing a function may help.
