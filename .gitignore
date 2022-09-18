@@ -1,9 +1,6 @@
-/build
-/buildSrc/.gradle/
-/buildSrc/build/
-/examples/build/
-/kinject/build/
-/kotlin-js-store/
-/compiler/build/
-/.gradle/
-/.idea/
+*.iml
+.gradle/
+.idea/
+build/
+kotlin-js-store/
+xcuserdata/

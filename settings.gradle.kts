@@ -12,5 +12,5 @@ pluginManagement {
 
 rootProject.name = "kinject2"
 
-include("kinject", "compiler", "examples")
+include("kinject", "compiler")
 
