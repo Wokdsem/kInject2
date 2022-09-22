@@ -1,8 +1,10 @@
 package com.wokdsem.kinject.compiler
 
+import com.google.auto.service.AutoService
 import com.google.devtools.ksp.processing.*
 import com.google.devtools.ksp.symbol.*
 
+@AutoService(SymbolProcessorProvider::class)
 public class KinjectProcessorProvider : SymbolProcessorProvider {
     override fun create(environment: SymbolProcessorEnvironment): KinjectProcessor = KinjectProcessor(environment)
 }
