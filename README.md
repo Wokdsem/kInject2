@@ -298,15 +298,21 @@ this [link](https://kotlinlang.org/docs/ksp-multiplatform.html).
 
 #### Generated code
 
-Last, add the following declarations so that your IDE is able to index the generated multiplatform code.
+Last, add the following configuration so that your IDE is able to index the generated code.
 
 ```kotlin
+// JVM/Android
+kotlin {
+    sourceSets.main { kotlin.srcDir("build/generated/ksp") }
+}
+
+// Multiplatform
 kotlin {
     sourceSets.commonMain { kotlin.srcDir("build/generated/ksp") }
 }
 ```
 
-**Adjust declaration when targeting other platforms.*
+**Adjust configuration when targeting other platforms/variants.*
 
 ## Incremental compilation
 
