@@ -325,6 +325,13 @@ give k2 a try as this solution is designed to avoid them.
 * Kotlin is a powerful language, the injection framework should avail of this power, which includes Typealias, Functions, Generics, and so on.
 * Writing tests to wrap the tool's weaknesses is a waste of time.
 
+## Roadmap
+
+#### 2.1.X
+
+- Allow overriding the default <K> generated graph class name
+- Allow overriding the default name of exported properties in the generated graph
+
 ## License
 
 ```
