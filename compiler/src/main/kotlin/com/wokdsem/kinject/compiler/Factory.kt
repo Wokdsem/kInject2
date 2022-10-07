@@ -106,9 +106,9 @@ private fun getProviderProperty(provider: Provider): PropertySpec {
 }
 
 private fun Id.propertyName(): String = "`DEP_${id.sanitize()}`"
-private fun Id.moduleName(): String = "MOD_${id.sanitize()}"
+private fun Id.moduleName(): String = "`MOD_${id.sanitize()}`"
 private fun String.sanitize(): String {
-    return asSequence().joinToString(separator = "") { char ->
+    return asSequence().filter { it != '`' }.joinToString(separator = "") { char ->
         when (char) {
             '_' -> "__"
             '<', '>', '.' -> "_"

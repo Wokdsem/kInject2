@@ -261,8 +261,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.0.0")
-    ksp("com.wokdsem.kinject:compiler:2.0.0")
+    implementation("com.wokdsem.kinject:kinject:2.0.1")
+    ksp("com.wokdsem.kinject:compiler:2.0.1")
 }
 ```
 
@@ -280,8 +280,8 @@ repositories {
 }
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.0.0")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.0.0")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.0.1")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.0.1")
 }
 
 afterEvaluate {
@@ -303,16 +303,16 @@ Last, add the following configuration so that your IDE is able to index the gene
 ```kotlin
 // JVM/Android
 kotlin {
-    sourceSets.main { kotlin.srcDir("build/generated/ksp") }
+    sourceSets.main { kotlin.srcDir("build/generated/ksp/main/kotlin") }
 }
 
 // Multiplatform
 kotlin {
-    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp") }
+    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/metadata/commonmain/kotlin") }
 }
 ```
 
-**Adjust configuration when targeting other platforms/variants.*
+**Adjust configuration when targeting other platforms and/or source-sets configurations.*
 
 ## Incremental compilation
 

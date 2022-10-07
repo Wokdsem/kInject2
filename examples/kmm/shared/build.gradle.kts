@@ -16,16 +16,17 @@ android {
         minSdk = 23
         targetSdk = 32
     }
+    namespace = "com.wokdsem.kinject.app"
 }
 
 kotlin {
-    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/") }
+    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/metadata/commonmain/kotlin") }
 }
 
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.0.0")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.0.0")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.0.1")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.0.1")
 }
 
 afterEvaluate {

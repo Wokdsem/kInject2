@@ -11,8 +11,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.0.0")
-    ksp("com.wokdsem.kinject:compiler:2.0.0")
+    implementation("com.wokdsem.kinject:kinject:2.0.1")
+    ksp("com.wokdsem.kinject:compiler:2.0.1")
 }
 
 kotlin {
