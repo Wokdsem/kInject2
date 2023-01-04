@@ -24,20 +24,21 @@ import kotlin.jvm.JvmInline
  * }
  * ```
  *
- *  @see com.wokdsem.kinject.scope.Factory
- *  @see com.wokdsem.kinject.scope.Single
- *  @see com.wokdsem.kinject.scope.Eager
+ *  [com.wokdsem.kinject.scope.Factory]
+ *  [com.wokdsem.kinject.scope.Single]
+ *  [com.wokdsem.kinject.scope.Eager]
  *
  * A module is considered a valid module if and only if its definition does not break any of the following constraints:
- *  Only a variant of a class can be used to define a module
- *  Modules cannot extend any classes other than Any
- *  Modules have no generic types associated
+ *  - Only a variant of a class can be used to define a module
+ *  - Modules cannot extend any classes other than Any
+ *  - Modules have no generic types associated
+ *
  * An import module declaration is considered a valid module declaration if and only if its definition does not break any of the following constraints:
- *  The function declaration have no parameters
- *  The function declaration is not an extension receiver
- *  The function declaration is not a suspend function
- *  The function declaration does not set generic types
- *  When using a Typealias, the visibility of the Typealias is no more restrictive than the visibility of the class where the declaration is defined
+ *  - The function declaration have no parameters
+ *  - The function declaration is not an extension receiver
+ *  - The function declaration is not a suspend function
+ *  - The function declaration does not set generic types
+ *  - When using a Typealias, the visibility of the Typealias is no more restrictive than the visibility of the class where the declaration is defined
  *
  */
 @JvmInline

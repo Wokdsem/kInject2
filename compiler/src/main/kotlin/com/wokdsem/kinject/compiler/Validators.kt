@@ -5,6 +5,7 @@ import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.symbol.Visibility.INTERNAL
 import com.google.devtools.ksp.symbol.Visibility.PUBLIC
 import com.squareup.kotlinpoet.ksp.toTypeName
+import com.wokdsem.kinject.Graph
 
 internal fun KSDeclaration.validatePublicVisibility(): Boolean = getVisibility() == PUBLIC
 internal fun KSDeclaration.validateVisibility(): Boolean = with(getVisibility()) { this == PUBLIC || this == INTERNAL }
@@ -25,3 +26,5 @@ internal fun KSValueParameter.validateVararg(): Boolean = !isVararg
 
 internal fun KSPropertyDeclaration.validateExtension(): Boolean = extensionReceiver == null
 internal fun KSPropertyDeclaration.validateMutability(): Boolean = !isMutable
+
+internal fun Graph.validateName(): Boolean = name.all { char -> char != '`' && char != '\\' }

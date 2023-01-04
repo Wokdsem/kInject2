@@ -18,13 +18,12 @@ import kotlin.jvm.JvmInline
  * will be thrown if dependencies cannot be satisfied.
  *
  *  An eager declaration is considered valid if and only if its definition does not break any of the following constraints:
- *  The function parameters don't set a default value
- *  The function parameters are not Vararg
- *  The function declaration is not an extension receiver
- *  The function declaration is not a suspend function
- *  The function declaration does not set generic types
- *  When using a Typealias, the visibility of the Typealias is no more restrictive than the visibility of the class where the declaration is defined
- *
+ *  - The function parameters don't set a default value
+ *  - The function parameters are not Vararg
+ *  - The function declaration is not an extension receiver
+ *  - The function declaration is not a suspend function
+ *  - The function declaration does not set generic types
+ *  - When using a Typealias, the visibility of the Typealias is no more restrictive than the visibility of the class where the declaration is defined
  *
  */
 @JvmInline

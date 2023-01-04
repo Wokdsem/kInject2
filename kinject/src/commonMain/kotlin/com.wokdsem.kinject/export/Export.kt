@@ -21,14 +21,15 @@ import kotlin.jvm.JvmInline
  * ```
  *
  * An export is considered a valid export if and only if its definition does not break any of the following constraints:
- *  Only interfaces can be exported
- *  The interface is not marked as sealed
- *  All declared properties are public properties whose types are supplied as providers in the graph
+ *  - Only interfaces can be exported
+ *  - The interface is not marked as sealed
+ *  - All declared properties are public properties whose types are supplied as providers in the graph
+ *
  * An export declaration is considered a valid export declaration if and only if its definition does not break any of the following constraints:
- *  The function declaration has no parameters
- *  The function declaration is not an extension receiver
- *  The function declaration is not a suspend function
- *  The function declaration does not set generic types
+ *  - The function declaration has no parameters
+ *  - The function declaration is not an extension receiver
+ *  - The function declaration is not a suspend function
+ *  - The function declaration does not set generic types
  *
  * The graph compilation will fail if any member other than public properties is found or if kInject is
  * unable to match the property type with any of the declared dependencies.

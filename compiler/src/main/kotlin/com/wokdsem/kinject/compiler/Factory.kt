@@ -20,7 +20,7 @@ internal fun generate(graph: Graph, codeGenerator: CodeGenerator) {
     val graphClass = root.toClassName()
     val graphVisibility = checkNotNull(root.getVisibility().toKModifier())
     val kGraphPackage = root.packageName.asString()
-    val kGraphName = "K${root.simpleName.getShortName()}"
+    val kGraphName = graph.name.takeUnless(String::isBlank) ?: "K${root.simpleName.getShortName()}"
     val kGraphClass = ClassName(kGraphPackage, kGraphName)
     val graphProperty = Id(id = root.toClassName().toString()).moduleName()
     FileSpec.builder(kGraphPackage, kGraphName).addType(

@@ -40,4 +40,17 @@ class GraphTest {
         }
     }
 
+    @Test
+    fun `assert default graph name is overwritten`() {
+        val graph = kotlin(
+            "TestGraph.kt", """
+             import com.wokdsem.kinject.Graph
+             @Graph(name = "MyGraph") class TestGraph
+        """
+        )
+        compile(graph).classLoader.run {
+            loadClass("MyGraph").kotlin
+        }
+    }
+
 }

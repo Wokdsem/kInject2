@@ -1,8 +1,6 @@
 package com.wokdsem.kinject.compiler
 
-import com.google.devtools.ksp.getDeclaredFunctions
-import com.google.devtools.ksp.getDeclaredProperties
-import com.google.devtools.ksp.getVisibility
+import com.google.devtools.ksp.*
 import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.symbol.Visibility.PUBLIC
 import com.squareup.kotlinpoet.ksp.toClassName
@@ -178,10 +176,12 @@ private fun KSPropertyDeclaration.processExporterDependency(): Analysis<Dependen
 private val KSClassDeclaration.id get() = Id(id = toClassName().toString())
 private val KSType.id get() = Id(id = (if (isMarkedNullable) makeNotNullable() else this).toTypeName().toString())
 
+@OptIn(KspExperimental::class)
 private fun KSClassDeclaration.validateGraphDeclaration(): Analysis<KSClassDeclaration> {
     return validateDeclarationClass().flatMap {
         if (!validateVisibility()) return@flatMap fail("Only public or internal visibility modifiers are allowed for graphs", this)
         if (!validateClassType()) return@flatMap fail("Only classes can be annotated as Graphs", this)
+        if (!getAnnotationsByType(com.wokdsem.kinject.Graph::class).first().validateName()) return@flatMap fail("Invalid graph name, characters ` and \\ are not allowed", this)
         success
     }
 }

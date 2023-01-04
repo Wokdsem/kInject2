@@ -13,7 +13,9 @@ public class KinjectProcessor(
     private val environment: SymbolProcessorEnvironment
 ) : SymbolProcessor {
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        resolver.getSymbolsWithAnnotation(GRAPH).filterIsInstance<KSClassDeclaration>().collect { graph -> processGraphDeclaration(graph) }
+        resolver.getSymbolsWithAnnotation(GRAPH)
+            .filterIsInstance<KSClassDeclaration>()
+            .collect { graph -> processGraphDeclaration(graph) }
             .fold(
                 onSuccess = { graphs -> graphs.forEach { graph -> generate(graph = graph, codeGenerator = environment.codeGenerator) } },
                 onError = { failure -> failure.errorNodes.forEach { environment.logger.error(failure.message, it) } }

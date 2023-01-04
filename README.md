@@ -5,11 +5,11 @@
 <sub><sup>*kInject2 is based on kInject, a dependency injection framework for Java. The initial *k* is not because this framework is Kotlin-oriented.</sup></sub>
 
 ---
-In software, when you are modeling a solution, it's pretty likely that you discover yourself just defining a set of entities or components with different responsibilities
+When you are modeling a software solution, it's pretty likely that you discover yourself just defining a set of entities or components with different responsibilities
 that interact with each other. When entity A interacts with entity B, we say that A has a dependency on B.
 If we represent all these relationships in our system as a directed graph, we get a graph of dependency.
 
-But things are not that simple, as our system evolves and grows, we quickly realize that these relationships of dependency cannot be established randomly, and soon concepts
+However, things are not that simple, as our system evolves and grows, we quickly realize that these relationships of dependency cannot be established randomly, and soon concepts
 such as Inversion of control, Inversion of dependency, and Dependency Injection come up.
 
 ## This is kInject2
@@ -30,7 +30,7 @@ The example above is a valid graph, but it's an empty graph, not very useful so 
 
 ### Declaring dependencies
 
-A dependency graph isn't very useful if we don't have any dependencies, let's declare our first dependency.
+A dependency graph isn't very helpful if it is empty, let's declare our first dependency. 
 
 ```kotlin
 @Graph
@@ -189,6 +189,21 @@ fun main() {
 
 Congratulations, you got your graph. However, if you try to use it, you'll see there's nothing accessible there. There's still one last step.
 
+#### Graph name
+
+You can override the default generated class name by setting the property name in the `@Graph` annotation. 
+
+```kotlin
+@Graph(name = "AwesomeGraph")
+class MyFirstGraph {
+    fun provideNumber() = single { 8 }
+}
+
+fun main() {
+    val awesomeGraph = AwesomeGraph.from(graph = MyFirstGraph())
+}
+```
+
 #### Export
 
 k2 requires that you make dependencies publicly accessible explicitly. For that, use the export declaration and set an interface that contains the types you need to export.   
@@ -243,7 +258,7 @@ First, apply the KSP plugin in your project build.gradle:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "1.7.10-1.0.6"
+    id("com.google.devtools.ksp") version "1.8.0-1.0.8"
 }
 ```
 
@@ -261,8 +276,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.0.1")
-    ksp("com.wokdsem.kinject:compiler:2.0.1")
+    implementation("com.wokdsem.kinject:kinject:2.1.0")
+    ksp("com.wokdsem.kinject:compiler:2.1.0")
 }
 ```
 
@@ -280,8 +295,8 @@ repositories {
 }
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.0.1")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.0.1")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.0")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.0")
 }
 
 afterEvaluate {
@@ -333,10 +348,13 @@ give k2 a try as this solution is designed to avoid them.
 
 ## Roadmap
 
-#### 2.1.X
+#### 2.1.1
 
-- Allow overriding the default <K> generated graph class name
 - Allow overriding the default name of exported properties in the generated graph
+
+#### 2.1.2
+
+- Log graph processing time
 
 ## License
 

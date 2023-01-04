@@ -62,4 +62,15 @@ class GraphSyntaxTest {
         asserCompilationError(graph, "KTestGraph", "This declaration cannot be parametrized with generic types")
     }
 
+    @Test
+    fun `assert that graph name does not contain any invalid char`() {
+        val graph = SourceFile.kotlin(
+            "TestGraph.kt", """
+             import com.wokdsem.kinject.Graph
+             @Graph(name = "It`s not valid") class TestGraph 
+        """
+        )
+        asserCompilationError(graph, "KTestGraph", "Invalid graph name, characters ` and \\ are not allowed")
+    }
+
 }

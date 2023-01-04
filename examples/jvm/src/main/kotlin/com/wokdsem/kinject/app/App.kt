@@ -5,7 +5,7 @@ import com.wokdsem.kinject.export.export
 import com.wokdsem.kinject.scope.factory
 import com.wokdsem.kinject.scope.single
 
-@Graph
+@Graph(name = "AppGraph")
 class ApplicationGraph {
     fun provideMoviesAdviser(service: MoviesService) = single { MoviesAdviser(service) }
     fun provideMoviesService() = factory<MoviesService> { LocalMoviesService() }
@@ -13,7 +13,7 @@ class ApplicationGraph {
 }
 
 fun main() {
-    val graph = KApplicationGraph.from(graph = ApplicationGraph())
+    val graph = AppGraph.from(graph = ApplicationGraph())
     println(message = graph.movies.adviser.recommendAMovie())
 }
 

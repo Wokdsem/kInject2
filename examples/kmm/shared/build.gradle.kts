@@ -1,7 +1,7 @@
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("com.google.devtools.ksp") version "1.7.10-1.0.6"
+    id("com.google.devtools.ksp") version "1.8.0-1.0.8"
 }
 
 kotlin {
@@ -25,8 +25,8 @@ kotlin {
 
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.0.1")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.0.1")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.0")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.0")
 }
 
 afterEvaluate {

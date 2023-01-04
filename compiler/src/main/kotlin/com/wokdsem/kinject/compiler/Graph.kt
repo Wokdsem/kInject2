@@ -1,5 +1,7 @@
 package com.wokdsem.kinject.compiler
 
+import com.google.devtools.ksp.KspExperimental
+import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.symbol.*
 
 internal class Graph(val root: KSClassDeclaration, val files: List<KSFile>, val modules: List<Module>, val providers: List<Provider>, val exporters: List<Exporter>)
@@ -19,6 +21,8 @@ internal class Exporter(val id: Id, val node: KSType, val type: Type, val declar
 internal class Dependency(val id: Id, val node: KSType, val name: String, val isNullable: Boolean, val declaration: KSNode)
 internal enum class Scope { FACTORY, EAGER, SINGLE }
 
+@OptIn(KspExperimental::class)
+internal val Graph.name get() = root.getAnnotationsByType(com.wokdsem.kinject.Graph::class).first().name
 internal val Module.reference get() = declaration.reference
 internal val Provider.reference get() = declaration.reference
 internal val Provider.isNullable get() = node.isMarkedNullable
