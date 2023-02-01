@@ -323,7 +323,7 @@ kotlin {
 
 // Multiplatform
 kotlin {
-    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/metadata/commonmain/kotlin") }
+    sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin") }
 }
 ```
 
