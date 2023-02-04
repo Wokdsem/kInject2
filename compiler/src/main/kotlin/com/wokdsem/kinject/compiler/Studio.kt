@@ -43,7 +43,7 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
                     Provider(id = node.id, scope = scope, node = node, dependencies = dependencies, source = id, declaration = this.declaration)
                 }
                 val previousProvider = providersIndex.put(provider.id, provider) ?: return SUCCESS
-                val failureMessage = "Providers clash, a dependency type can only be provided once - typealias may help to break the clash"
+                val failureMessage = "Providers clash, a dependency type can only be provided once - typealias may help break the clash"
                 return fail(message = failureMessage, provider.declaration, previousProvider.declaration)
             }
 
@@ -115,9 +115,17 @@ private fun validateProvidersGraph(providers: Map<Id, Provider>): Analysis<Unit>
 }
 
 private fun KSFunctionDeclaration.processStatement(publicVisibilityRequired: Boolean): Analysis<Statement> {
-    val returnType = checkNotNull(returnType?.resolve())
+    val functionReturnType = checkNotNull(returnType?.settle())
 
-    fun getStatementType() = validateDeclaration().flatMap { checkNotNull(returnType.arguments.first().type).resolve().validateReturnType(this, publicVisibilityRequired) }
+    fun getStatementType(): Analysis<KSType> {
+        return validateDeclaration().flatMap {
+            functionReturnType.flatMap { type ->
+                checkNotNull(type.arguments.first().type).settle().flatMap { argumentType ->
+                    argumentType.validateReturnType(this, publicVisibilityRequired)
+                }
+            }
+        }
+    }
 
     fun asImportStatement(): Analysis<Statement> {
         if (!validateEmptyParameters()) return fail("Import declaration does not accept parameters", this)
@@ -147,29 +155,39 @@ private fun KSFunctionDeclaration.processStatement(publicVisibilityRequired: Boo
         }
     }
 
-    if (returnType.isMarkedNullable) return Statement.IRRELEVANT
-    return when (returnType.declaration.qualifiedName?.asString()) {
-        IMPORT -> asImportStatement()
-        FACTORY -> asProviderStatement(type = Declaration.Type.FACTORY)
-        SINGLE -> asProviderStatement(type = Declaration.Type.SINGLE)
-        EAGER -> asProviderStatement(type = Declaration.Type.EAGER)
-        EXPORTED_FACTORY -> asProviderStatement(type = Declaration.Type.EXPORTED_FACTORY)
-        EXPORTED_SINGLE -> asProviderStatement(type = Declaration.Type.EXPORTED_SINGLE)
-        EXPORTED_EAGER -> asProviderStatement(type = Declaration.Type.EXPORTED_EAGER)
-        EXPORT -> asExporterStatement()
-        else -> Statement.IRRELEVANT
+    return functionReturnType.flatMap { type ->
+        if (type.isMarkedNullable) return Statement.IRRELEVANT
+        when (type.declaration.qualifiedName?.asString()) {
+            IMPORT -> asImportStatement()
+            FACTORY -> asProviderStatement(type = Declaration.Type.FACTORY)
+            SINGLE -> asProviderStatement(type = Declaration.Type.SINGLE)
+            EAGER -> asProviderStatement(type = Declaration.Type.EAGER)
+            EXPORTED_FACTORY -> asProviderStatement(type = Declaration.Type.EXPORTED_FACTORY)
+            EXPORTED_SINGLE -> asProviderStatement(type = Declaration.Type.EXPORTED_SINGLE)
+            EXPORTED_EAGER -> asProviderStatement(type = Declaration.Type.EXPORTED_EAGER)
+            EXPORT -> asExporterStatement()
+            else -> Statement.IRRELEVANT
+        }
     }
 }
 
 private fun KSValueParameter.processProviderDependency(): Analysis<Dependency> {
-    return validateProviderDependency().map { dep ->
-        with(receiver = dep.type.resolve()) { Dependency(id = id, node = this, name = checkNotNull(name).asString(), isNullable = isMarkedNullable, declaration = dep) }
+    return validateProviderDependency().flatMap { dep ->
+        dep.type.settle().map { dependencyType ->
+            dependencyType.run {
+                Dependency(id = id, node = this, name = checkNotNull(name).asString(), isNullable = isMarkedNullable, declaration = dep)
+            }
+        }
     }
 }
 
 private fun KSPropertyDeclaration.processExporterDependency(): Analysis<Dependency> {
-    return validateExportDependency().map { dep ->
-        with(receiver = dep.type.resolve()) { Dependency(id = id, node = this, name = simpleName.asString(), isNullable = isMarkedNullable, declaration = dep) }
+    return validateExportDependency().flatMap { dep ->
+        dep.type.settle().map { dependencyType ->
+            dependencyType.run {
+                Dependency(id = id, node = this, name = simpleName.asString(), isNullable = isMarkedNullable, declaration = dep)
+            }
+        }
     }
 }
 
@@ -216,7 +234,17 @@ private fun KSFunctionDeclaration.validateDeclaration(): Analysis<KSFunctionDecl
     return success
 }
 
-private fun KSType.validateReturnType(fDeclaration: KSFunctionDeclaration, publicVisibilityRequired: Boolean): Analysis<KSType> {
+private fun KSTypeReference.settle(): Analysis<KSType> {
+    val type = resolve()
+    return when {
+        type.isError -> fail("Type cannot be resolved. For further details about this error, refer to the 'Well-known Issues' section in the readme.", this)
+        else -> type.success
+    }
+}
+
+private fun KSType.validateReturnType(
+    fDeclaration: KSFunctionDeclaration, publicVisibilityRequired: Boolean
+): Analysis<KSType> {
     if (declaration !is KSTypeAlias) return success
     fun fail(message: String) = fail<KSType>(message, fDeclaration, declaration)
     when {

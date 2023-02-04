@@ -9,13 +9,12 @@ kotlin {
 
     jvm()
 
-    js {
+    js(IR) {
         browser()
         nodejs()
     }
 
     macosX64()
-    iosArm32()
     iosArm64()
     iosSimulatorArm64()
     iosX64()
@@ -23,7 +22,6 @@ kotlin {
     watchosArm32()
     watchosArm64()
     watchosSimulatorArm64()
-    watchosX86()
     watchosX64()
 
     tvosArm64()
@@ -31,7 +29,6 @@ kotlin {
     tvosSimulatorArm64()
 
     linuxX64()
-    linuxArm32Hfp()
 
     mingwX64()
 

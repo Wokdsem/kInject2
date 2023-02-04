@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 pluginManagement {
     val kotlinVersion: String by settings
     val kspVersion: String by settings
@@ -10,7 +12,12 @@ pluginManagement {
     }
 }
 
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}
+
 rootProject.name = "kinject2"
 
 include("kinject", "compiler")
-

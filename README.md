@@ -258,7 +258,7 @@ First, apply the KSP plugin in your project build.gradle:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "1.8.0-1.0.8"
+    id("com.google.devtools.ksp") version "1.8.22-1.0.11"
 }
 ```
 
@@ -276,8 +276,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.1.0")
-    ksp("com.wokdsem.kinject:compiler:2.1.0")
+    implementation("com.wokdsem.kinject:kinject:2.1.1")
+    ksp("com.wokdsem.kinject:compiler:2.1.1")
 }
 ```
 
@@ -295,8 +295,8 @@ repositories {
 }
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.0")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.0")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.1")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.1")
 }
 
 afterEvaluate {
@@ -333,6 +333,28 @@ kotlin {
 
 Incremental compilation is enabled by default. A graph compilation is reused as long as the graph definition remains stable.
 
+## Well-known issues
+
+#### Type cannot be resolved
+
+KSP may not be able to resolve types if they are declared in multiplatform modules that only target JVM. As a workaround, you can add a dummy target to the build file where the failing types are declared. This allows KSP to get around the problem and resolve types correctly.
+
+```kotlin
+plugins {
+    kotlin("multiplatform")
+}
+
+kotlin {
+    jvm()
+    
+    // Setting js to get around of the type resolution issue
+    js(IR) {
+        browser()
+        nodejs()
+    }
+}
+```
+
 ## Why kInject2?
 
 There is no intent to hide this is a very opinionated solution in terms of how software should be built and especially how a dependency injection framework should be used.
@@ -348,11 +370,11 @@ give k2 a try as this solution is designed to avoid them.
 
 ## Roadmap
 
-#### 2.1.1
+#### 2.1.2
 
 - Allow overriding the default name of exported properties in the generated graph
 
-#### 2.1.2
+#### 2.1.3
 
 - Log graph processing time
 
