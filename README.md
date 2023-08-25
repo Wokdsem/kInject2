@@ -258,7 +258,7 @@ First, apply the KSP plugin in your project build.gradle:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "1.8.22-1.0.11"
+    id("com.google.devtools.ksp") version "1.9.0-1.0.13"
 }
 ```
 
@@ -313,15 +313,9 @@ this [link](https://kotlinlang.org/docs/ksp-multiplatform.html).
 
 #### Generated code
 
-Last, add the following configuration so that your IDE is able to index the generated code.
+Last, add the following configuration so that your IDE is able to index the generated code (only multiplatform).
 
 ```kotlin
-// JVM/Android
-kotlin {
-    sourceSets.main { kotlin.srcDir("build/generated/ksp/main/kotlin") }
-}
-
-// Multiplatform
 kotlin {
     sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/metadata/commonMain/kotlin") }
 }
@@ -370,11 +364,11 @@ give k2 a try as this solution is designed to avoid them.
 
 ## Roadmap
 
-#### 2.1.2
+#### 2.1.3
 
 - Allow overriding the default name of exported properties in the generated graph
 
-#### 2.1.3
+#### 2.1.4
 
 - Log graph processing time
 

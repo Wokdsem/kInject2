@@ -1,11 +1,11 @@
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("com.google.devtools.ksp") version "1.8.22-1.0.11"
+    id("com.google.devtools.ksp") version "1.9.0-1.0.13"
 }
 
 kotlin {
-    android()
+    androidTarget()
     ios { binaries.framework { baseName = "shared" } }
 }
 
@@ -14,9 +14,13 @@ android {
     sourceSets["main"].manifest.srcFile("src/androidMain/AndroidManifest.xml")
     defaultConfig {
         minSdk = 23
-        targetSdk = 32
     }
     namespace = "com.wokdsem.kinject.app"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
 }
 
 kotlin {
@@ -25,8 +29,8 @@ kotlin {
 
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.1")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.1")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.2")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.2")
 }
 
 afterEvaluate {
