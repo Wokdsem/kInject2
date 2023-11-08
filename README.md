@@ -1,3 +1,6 @@
+
+<img src="assets/k2logo.png" width="128" height="128" alt="k2 logo">
+
 # *kInject2* (k2)
 
 #### A kotlin multiplatform dependency injection framework powered by [KSP](https://github.com/google/ksp) & [KotlinPoet](https://github.com/square/kotlinpoet)
