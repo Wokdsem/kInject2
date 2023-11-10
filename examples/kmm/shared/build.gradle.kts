@@ -1,12 +1,14 @@
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("com.google.devtools.ksp") version "1.9.0-1.0.13"
+    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
 }
 
 kotlin {
     androidTarget()
-    ios { binaries.framework { baseName = "shared" } }
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
 }
 
 android {
@@ -18,8 +20,8 @@ android {
     namespace = "com.wokdsem.kinject.app"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility = JavaVersion.VERSION_19
+        targetCompatibility = JavaVersion.VERSION_19
     }
 }
 

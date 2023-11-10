@@ -261,7 +261,7 @@ First, apply the KSP plugin in your project build.gradle:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "1.9.0-1.0.13"
+    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
 }
 ```
 
@@ -367,11 +367,11 @@ give k2 a try as this solution is designed to avoid them.
 
 ## Roadmap
 
-#### 2.1.3
+#### 2.2.x
 
 - Allow overriding the default name of exported properties in the generated graph
 
-#### 2.1.4
+#### 2.3.x
 
 - Log graph processing time
 
