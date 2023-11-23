@@ -1,4 +1,4 @@
-package com.wokdsem.kinject.compiler.exporters
+package com.wokdsem.kinject.compiler.exports
 
 import com.tschuchort.compiletesting.SourceFile
 import com.wokdsem.kinject.compiler.asserCompilationError

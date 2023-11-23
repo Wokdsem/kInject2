@@ -32,7 +32,7 @@ internal fun generate(graph: Graph, codeGenerator: CodeGenerator) {
             addType(typeSpec = getCompanionBuilder(graphClass, kGraphClass, graphVisibility))
             getExportedProperties(graphProperty, graph.exporters).forEach(::addProperty)
             graph.modules.forEach { module -> addProperty(propertySpec = getModuleProperty(module)) }
-            graph.providers.forEach { provider -> addProperty(propertySpec = getProviderProperty(provider)) }
+            getProviderProperties(graph.providers).forEach(::addProperty)
         }.build()
     ).build().writeTo(codeGenerator = codeGenerator, aggregating = false, originatingKSFiles = graph.files)
 }
@@ -93,16 +93,28 @@ private fun getModuleProperty(module: Module): PropertySpec {
     }.build()
 }
 
-private fun getProviderProperty(provider: Provider): PropertySpec {
-    return PropertySpec.builder(provider.id.propertyName(), provider.node.toTypeName(), PRIVATE).apply {
-        val dependencies = provider.dependencies.joinToString(separator = ",") { "${it.name} = ${it.id.propertyName()}" }
-        val propertyCode = "${provider.source.moduleName()}.${provider.reference}($dependencies).get()"
-        when (provider.scope) {
-            Scope.FACTORY -> getter(getter = FunSpec.getterBuilder().addStatement("return $propertyCode").build())
-            Scope.EAGER -> initializer(format = propertyCode)
-            Scope.SINGLE -> delegate(codeBlock = CodeBlock.builder().beginControlFlow("lazy").add(propertyCode).endControlFlow().build())
+private fun getProviderProperties(providers: Map<Id, Provider>): List<PropertySpec> {
+    return mutableListOf<PropertySpec>().apply {
+        val addedSpecs = mutableSetOf<Id>()
+        fun addSpec(id: Id) {
+            if (id in addedSpecs) return
+            val provider = providers.getValue(id)
+            provider.dependencies.forEach { addSpec(it.id) }
+            add(
+                PropertySpec.builder(provider.id.propertyName(), provider.node.toTypeName(), PRIVATE).apply {
+                    val dependencies = provider.dependencies.joinToString(separator = ",") { "${it.name} = ${it.id.propertyName()}" }
+                    val propertyCode = "${provider.source.moduleName()}.${provider.reference}($dependencies).get()"
+                    when (provider.scope) {
+                        Scope.FACTORY -> getter(getter = FunSpec.getterBuilder().addStatement("return $propertyCode").build())
+                        Scope.EAGER -> initializer(format = propertyCode)
+                        Scope.SINGLE -> delegate(codeBlock = CodeBlock.builder().beginControlFlow("lazy").add(propertyCode).endControlFlow().build())
+                    }
+                }.build()
+            )
+            addedSpecs += id
         }
-    }.build()
+        providers.forEach { (id, _) -> addSpec(id) }
+    }
 }
 
 private fun Id.propertyName(): String = "`DEP_${id.sanitize()}`"

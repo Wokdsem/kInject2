@@ -11,8 +11,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.1.3")
-    ksp("com.wokdsem.kinject:compiler:2.1.3")
+    implementation("com.wokdsem.kinject:kinject:2.1.4")
+    ksp("com.wokdsem.kinject:compiler:2.1.4")
 }
 
 tasks.withType<KotlinCompile> {

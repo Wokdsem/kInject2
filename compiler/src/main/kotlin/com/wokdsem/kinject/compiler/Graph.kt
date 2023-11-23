@@ -4,7 +4,7 @@ import com.google.devtools.ksp.KspExperimental
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.symbol.*
 
-internal class Graph(val root: KSClassDeclaration, val files: List<KSFile>, val modules: List<Module>, val providers: List<Provider>, val exporters: List<Exporter>)
+internal class Graph(val root: KSClassDeclaration, val files: List<KSFile>, val modules: List<Module>, val providers: Map<Id, Provider>, val exporters: List<Exporter>)
 
 @JvmInline
 internal value class Id(val id: String)
@@ -13,7 +13,7 @@ internal class Module(val id: Id, val node: KSType, val source: Id, val declarat
 internal class Provider(val id: Id, val scope: Scope, val node: KSType, val dependencies: List<Dependency>, val source: Id, val declaration: KSFunctionDeclaration)
 internal class Exporter(val id: Id, val node: KSType, val type: Type, val declaration: KSFunctionDeclaration) {
     sealed interface Type {
-        object Delegated : Type
+        data object Delegated : Type
         class Bracket(val dependencies: List<Dependency>) : Type
     }
 }

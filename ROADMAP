@@ -1,0 +1,79 @@
+BUG
+    EAGER scope generated graph dependencies order issue
+
+Develop a solution to override a dependency provider for testing purposes
+
+IMPROVEMENTS
+    Dependencies of eager dependencies are eager by default
+    If a dependency is not EAGER and is only consumed by one other dependency, inline initialization inside consumer initialization block. (Depending on the provider overriding strategy)
+    Emit a warning if a dependency is not eager and is not exported and is not used by another dependency.
+
+Center logo
+
+2.1.5
+VIP If project doesn't compile, don't show the well-known error
+Review doc by using IA
+Missing errors logs when running on Android
+
+> Roadmap 2.1.2
+    > Export @Name annotation
+> Roadmap 2.2.0
+    > Log processing time
+> Share with the community :: ANDROID WEEKLY
+
+Spike
+    Add sourcelayout new style
+    Android-V2-SourceSetLayout
+
+Backlog
+    > RECURRING CHECK: Update KSP/KOTLIN/KotlinPoet version
+    > RECURRING CHECK: Verify common-metadata issue is still happening
+    > @TEST :: IMPORT :: "Only a variant of class declaration can be imported"
+    > DOC Best practices
+        :: Naming
+    > DOC Testing strategy: how to override for testing
+        :: You decide what works better for you: Mocking generated graph - Mocking exported instances - Overriding - Strategy pattern...
+    > Value class
+    > Add test for happy paths
+    > If error comes from other module, ref is not shown
+    > Graph name clash
+    > Scope weak singleton
+    > Support @Provide* on val
+    > @Binds*
+        > Shortcut to provide a dep : Val with all properties or public primary class constructor
+        > Deep binding
+    > Accept typealias as valid types to declare providers, exporters and modules
+    > Allow that an exported type can contain generic types
+    > TypeAlias --> Exported type is behind a typealias
+    > Factory property names cache by wrapping the generate process into a class
+    > watchos() > tvos()
+    > RECURRING CHECK: Update KSP/KOTLIN/KotlinPoet version
+    > Compare to Kodein possibilities
+    > Compare to Koin possibilities
+    > Dagger comparison
+    > Accept generic type on Graph classes
+
+Ideas
+    > Github sponsorship > 250 stars
+    > Add android project example
+    > kInject2 webpage
+    > Dep tree as a comment on each provider
+    > Image with graph and sub-graphs
+    > Format generated code
+
+:: ANDROID WEEKLY
+
+NEW RELEASE GUIDE
+    - Update dependencies
+        ** Gradle properties
+            version
+            kotlinVersion
+            kspVersion
+        symbol-processing-api
+        KotlinPoet
+    - Code changes
+    - Update examples (with a maven local version :: publishToMavenLocal)
+        JVM
+        KMM
+    - README
+    - gradle publish
