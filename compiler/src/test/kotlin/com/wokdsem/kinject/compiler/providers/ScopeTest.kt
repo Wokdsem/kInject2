@@ -75,4 +75,21 @@ class ScopeTest {
         assert(compilation.getDep("initialized") == true)
     }
 
+    @Test
+    fun `assert that dependencies of eager dependencies are initialized first`() {
+        val graph = SourceFile.kotlin(
+            "TestGraph.kt", """
+             import com.wokdsem.kinject.Graph
+             import com.wokdsem.kinject.scope.exportEager
+             import com.wokdsem.kinject.scope.single
+             class Dep(number: Int)
+             @Graph class TestGraph {
+                fun provideDep(number: Int) = exportEager { Dep(number) }
+                fun provideNumber() = single { 5 }
+             }
+        """
+        )
+        getCompilation(graph, "TestGraph")
+    }
+
 }

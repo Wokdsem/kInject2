@@ -11,7 +11,7 @@ import com.wokdsem.kinject.compiler.Statement.*
 internal fun processGraphDeclaration(graphDeclaration: KSClassDeclaration): Analysis<Graph> {
     return graphDeclaration.collectGraph().validate { rawGraph -> validateExporters(rawGraph.exporters, rawGraph.providersIndex) }
         .validate { rawGraph -> validateProvidersGraph(rawGraph.providersIndex) }.map { rawGraph ->
-            with(rawGraph) { Graph(root = root, files = files, modules = modules, providers = providersIndex.values.toList(), exporters = exporters.values.toList()) }
+            with(rawGraph) { Graph(root = root, files = files, modules = modules, providers = providersIndex, exporters = exporters.values.toList()) }
         }
 }
 
@@ -25,20 +25,20 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
 
         fun KSClassDeclaration.process(): Analysis<Int> {
 
-            var providerCounter = 0
+            var providersCount = 0
 
             fun appendModule(import: Import): Analysis<Unit> {
                 fun clashError(clash: KSDeclaration) = fail<Unit>("Modules clash, a module can be imported only once", clash, import.declaration)
                 val module = with(import) { Module(id = node.id, node = node, source = id, declaration = this.declaration) }
                 if (module.id == graphId) return clashError(this@collectGraph)
                 modulesIndex.put(module.id, module)?.let { previousModule -> return clashError(previousModule.declaration) }
-                return import.nodeDeclaration.process().validate { counter ->
-                    if (counter == 0) fail("A module must provide at least one dependency", import.declaration) else SUCCESS
-                }.onSuccess { counter -> providerCounter += counter }.map { }
+                return import.nodeDeclaration.process().validate { count ->
+                    if (count == 0) fail("A module must provide at least one dependency", import.declaration) else SUCCESS
+                }.onSuccess { counter -> providersCount += counter }.map { }
             }
 
             fun appendProvider(declaration: Declaration, scope: Scope): Analysis<Unit> {
-                providerCounter++
+                providersCount++
                 val provider = with(declaration) {
                     Provider(id = node.id, scope = scope, node = node, dependencies = dependencies, source = id, declaration = this.declaration)
                 }
@@ -75,7 +75,7 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
                         }
                     }
                 }
-            }.map { providerCounter }
+            }.map { providersCount }
         }
 
         return graph.process().map { RawGraph(root = this, files = files, modules = modulesIndex.values.toList(), providersIndex = providersIndex, exporters = exportersIndex) }
@@ -237,7 +237,7 @@ private fun KSFunctionDeclaration.validateDeclaration(): Analysis<KSFunctionDecl
 private fun KSTypeReference.settle(): Analysis<KSType> {
     val type = resolve()
     return when {
-        type.isError -> fail("Type cannot be resolved. For further details about this error, refer to the 'Well-known Issues' section in the readme.", this)
+        type.isError -> fail("x", this)
         else -> type.success
     }
 }
@@ -273,7 +273,7 @@ private sealed interface Statement {
         val IRRELEVANT = Irrelevant.success
     }
 
-    object Irrelevant : Statement
+    data object Irrelevant : Statement
     class Import(val node: KSType, val nodeDeclaration: KSClassDeclaration, val declaration: KSFunctionDeclaration) : Statement
     class Declaration(val type: Type, val node: KSType, val dependencies: List<Dependency>, val declaration: KSFunctionDeclaration) : Statement {
         enum class Type { FACTORY, SINGLE, EAGER, EXPORT, EXPORTED_FACTORY, EXPORTED_SINGLE, EXPORTED_EAGER }

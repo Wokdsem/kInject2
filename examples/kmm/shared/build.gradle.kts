@@ -31,8 +31,8 @@ kotlin {
 
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.2")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.2")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.4")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.4")
 }
 
 afterEvaluate {

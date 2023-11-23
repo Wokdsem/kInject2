@@ -279,8 +279,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.1.1")
-    ksp("com.wokdsem.kinject:compiler:2.1.1")
+    implementation("com.wokdsem.kinject:kinject:2.1.4")
+    ksp("com.wokdsem.kinject:compiler:2.1.4")
 }
 ```
 
@@ -298,8 +298,8 @@ repositories {
 }
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.1")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.1")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.4")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.4")
 }
 
 afterEvaluate {
