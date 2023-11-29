@@ -21,14 +21,16 @@ internal fun compile(vararg sources: SourceFile): KotlinCompilation.Result {
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun getCompilation(graph: SourceFile, graphName: String, `package`: String = ""): Compilation {
+internal fun getCompilation(graph: SourceFile, graphName: String, `package`: String = "", override: String? = null): Compilation {
     compile(graph).classLoader.run {
-        val packagePrefix = if(`package`.isEmpty()) `package` else "$`package`."
+        val packagePrefix = if (`package`.isEmpty()) `package` else "$`package`."
         val testGraphClass = loadClass("$packagePrefix$graphName").kotlin
         val kTestGraphClass = loadClass("${packagePrefix}K$graphName").kotlin
+        val overrideClass = override?.let { loadClass("${packagePrefix}${it}").kotlin }
         val testGraphInstance = checkNotNull(value = testGraphClass.primaryConstructor).call()
+        val overrideInstance = overrideClass?.let { checkNotNull(value = it.primaryConstructor).call() }
         val kGraphInstance = with(checkNotNull(kTestGraphClass.companionObject)) {
-            checkNotNull(declaredFunctions.first { it.name == "from" }.call(objectInstance, testGraphInstance))
+            checkNotNull(declaredFunctions.first { it.name == "from" }.call(objectInstance, testGraphInstance, overrideInstance))
         }
         return object : Compilation {
             private fun depOf(kClass: KClass<*>, instance: Any, dep: String) = (kClass.declaredMemberProperties.first { it.name == dep } as KProperty1<Any, *>).get(instance)

@@ -5,35 +5,34 @@
 
 #### A kotlin multiplatform dependency injection framework powered by [KSP](https://github.com/google/ksp) & [KotlinPoet](https://github.com/square/kotlinpoet)
 
-<sub><sup>*kInject2 is based on kInject, a dependency injection framework for Java. The initial *k* is not because this framework is Kotlin-oriented.</sup></sub>
+<sub><sup>*kInject2 is based on kInject, a dependency injection framework for Java. The initial *k* is not because this is a Kotlin-oriented framework.</sup></sub>
 
 ---
-When you are modeling a software solution, it's pretty likely that you discover yourself just defining a set of entities or components with different responsibilities
-that interact with each other. When entity A interacts with entity B, we say that A has a dependency on B.
-If we represent all these relationships in our system as a directed graph, we get a graph of dependency.
+When you model a software solution, you basically establish how a bunch of entities interact with each other.
+If the entity A interacts with another entity B, we say that A has a dependency on B.
+Now, if you represent all these dependency relationships in your system as a directed graph, you will get a dependency graph.
 
-However, things are not that simple, as our system evolves and grows, we quickly realize that these relationships of dependency cannot be established randomly, and soon concepts
-such as Inversion of control, Inversion of dependency, and Dependency Injection come up.
+As your system evolves and grows, you quickly realize that all these relationships of dependency become a little bit complex to manage. 
+Soon, concepts such as Inversion of Control, Inversion of dependency, and Dependency Injection emerge as a way to handle all that complexity.
 
 ## This is kInject2
 
-k2 is a compile-time framework for dependency injection for Kotlin. It is designed to be easy-to-learn and easy-to-use.
+kInject2 (k2) is a multi-platform, compile-time dependency injection framework for Kotlin. It is designed to be easy-to-learn and easy-to-use.
 
 ### The dependency graph
 
-The first step to use k2 is to build a dependency graph.
+The first step to use k2 is to build a dependency graph. To do this, we annotate a class with ```@Graph```.  
+This annotation will let k2 know that we want to use this class as a dependency graph. 
 
 ```kotlin
 @Graph
 class MyFirstGraph
 ```
 
-We annotate a class with ```@Graph``` to let k2 know we want to use this class as a dependency graph.  
-The example above is a valid graph, but it's an empty graph, not very useful so far.
-
 ### Declaring dependencies
 
-A dependency graph isn't very helpful if it is empty, let's declare our first dependency. 
+The example above represents a valid graph, but it's an empty graph, which doesn't seem to be very useful.  
+Let's declare our first dependency: 
 
 ```kotlin
 @Graph
@@ -42,12 +41,14 @@ class MyFirstGraph {
 }
 ```
 
-This declaration add a dependency with type ```Int``` to the graph.
+This declaration adds a dependency of type ```Int``` to the graph.
+
+*\* Graph compilation will fail if more than one declaration for a type is added to the graph.*
 
 #### Type inference
 
-In the example above, the ```Int``` type is inferred automatically. However, it's possible you may need to override the default type inference, you can do it by using one of the
-following ways:
+In the dependency declaration example above, the ```Int``` type is automatically inferred.
+Sometimes you may want to override the default type inference, use one of the following ways to override the inferred type:
 
 ```kotlin
 fun provideNumber() = single<Number> { 8 }
@@ -59,31 +60,33 @@ fun provideNumber(): Single<Number> = single { 8 }
 
 #### Scopes
 
-A dependency is always declared along with its scope. The scope is applicable in the context of the graph where is declared, thus,
-if the same dependency is declared in a different graph, the scope in one graph doesn't have any effect on the other.
+Dependencies are always declared inside a scope. The scope determines when a dependency is instantiated as well as its reusability.  
+k2 provides the following scopes: 
 
-* **Single** The single scope guarantees that only one instance of this dependency will be created in the graph instance.
+* **Single** The single scope guarantees that only one instance of this dependency will be created in the graph instance. The dependency won't be instantiated until it is first required (lazy).  
 
 ```kotlin
 fun provideSingleNumber() = single { 5 }
 ```
 
-* **Eager** The eager scope is a variant of single, only one instance will be created in the graph and this will be initialized as soon as the graph is loaded.
+* **Eager** The eager scope also guarantees that only one instance of this dependency will be created, but the dependency will be instantiated as soon as the graph is loaded.  
 
 ```kotlin
 fun provideSingleNumber() = eager { 5 }
 ```
 
-* **Factory** A new instance will be returned every time a dependency with factory scope is injected.
+* **Factory** A new instance will be returned every time a dependency with factory scope is required.
 
 ```kotlin
 fun provideSingleNumber() = factory { 5 }
 ```
 
+*\* The scope of a dependency only applies within the graph context and per graph instance.*
+
 #### Type alias
 
-You can only have one provider declaration per type, but there may be times you need to add dependencies with the same type to the graph. For these cases,
-you can use Typealias to distinguish them. Typealias is not resolved during the graph compilation, thus a typealias will be considered a different type than its underlying type.
+You can declare a dependency type only once; otherwise, k2 will raise an error at compilation time.  
+However, there may be situations where you need to add multiple dependencies of the same type to the graph. In these cases, you can leverage `typealias` to distinguish between them. 
 
 ```kotlin
 typealias Password = String
@@ -109,9 +112,8 @@ class MyFirstGraph {
 
 #### The dependency's dependencies
 
-So far, we've seen how to declare a dependency, but we haven't established any connection between them. To inject the dependencies of the dependency you are declaring,
-simply add them as parameters of the function where the dependency is provided. k2 will throw a compile-time error if a dependency cycle is detected or if any of the
-dependencies are unknown.
+So far, we've seen how to declare a dependency, but we haven't established any connection between them.  
+If you are declaring a dependency that has a dependency on other dependencies, simply add them as parameters of the function where the dependency is declared.   
 
 ```kotlin
 @Graph
@@ -121,11 +123,13 @@ class MyFirstGraph {
 }
 ```
 
+*\* k2 will throw a compile-time error if it detects a dependency cycle, or if any of the dependencies are unknown.*
+
 #### Optional types
 
-You can mark dependencies as optional in your declarations. The declared type will be added to the graph and can be used as usual. However, 
-if a type that was declared as optional is set as dependency of a dependency, this must set the optionality too, otherwise, an
-error will be thrown in compile-time. A non-optional declaration can resolve both, optional and non-optional dependencies. 
+You can declare optional (nullable) dependencies; however, be aware of the following constraints:
+1. A type and its optional variant are considered the same type.
+2. If a dependency relies on an optional dependency, the optional nature must be respected in its declaration.
 
 ```kotlin
 @Graph
@@ -135,15 +139,17 @@ class MyFirstGraph {
     fun provideTextAndNumber(text: String?, number: Int?) = single {
         // text will be supplied by the first declaration as a non-optional type can resolve optional
         // number will be supplied by the second declaration, compilation fails if number isn't marked as optional
-        TextAndNumber(text = text, number = number)
+        OptionalTextAndNumber(text = text, number = number)
     }
 }
 data class OptionalTextAndNumber(val text: String?, val number: Int?)
 ```
 
+*\* A non-optional declaration can resolve both, optional and non-optional dependencies.*
+
 #### Function type
 
-Sometimes, you may need to instantiate dependencies that have dependencies that are only known in runtime. For these cases, providing a function may help.
+Functions are treated like any other type, allowing you to declare a dependency that provides a function as its return type. 
 
 ```kotlin
 @Graph
@@ -155,9 +161,10 @@ class MyFirstGraph {
 
 #### Modules
 
-As a project grows, it's possible that your graph does too, and you may prefer to break your graph down into multiple chunks. In this context, these chunks are known as modules.   
-A module is nothing but a container of dependencies that can be imported into a graph. A module can also import other modules.
-All the dependencies declared in a module will be added to the dependency graph when imported.
+As your project grows, it's likely that your dependency graph will expand as well. 
+To improve maintainability and reduce complexity, consider breaking down your graph into multiple modules. 
+A module essentially acts as a container for dependencies, which can be imported into a larger graph.   
+Any dependencies declared within a module will be automatically added to the dependency graph where the module is imported.
 
 ```kotlin
 class MyFirstGraph {
@@ -174,10 +181,15 @@ class AnotherModule {
 }
 ```
 
-### Building the graph
+*\* A module can also import other modules.*
 
-Once you have declared a graph and supplied all the dependencies that make up the graph, it's time to use it.  
-The graph is analyzed in compile-time, and if all requirements are met, k2 will generate a K<Graph> class containing all processed dependencies.
+---
+
+Now that you understand how to declare a dependency graph and its dependencies, let’s explore the capabilities of k2.
+
+### Compiling the graph
+
+Graphs are analyzed at compile-time, and if all requirements are satisfied, k2 generates a K\<Graph> file that includes everything necessary to start retrieving your dependencies.
 
 ```kotlin
 @Graph
@@ -190,27 +202,15 @@ fun main() {
 }
 ```
 
-Congratulations, you got your graph. However, if you try to use it, you'll see there's nothing accessible there. There's still one last step.
-
-#### Graph name
-
-You can override the default generated class name by setting the property name in the `@Graph` annotation. 
-
-```kotlin
-@Graph(name = "AwesomeGraph")
-class MyFirstGraph {
-    fun provideNumber() = single { 8 }
-}
-
-fun main() {
-    val awesomeGraph = AwesomeGraph.from(graph = MyFirstGraph())
-}
-```
+Congratulations on getting your first graph up and running! However, you'll notice that there's no much you can do yet. There's one final step remaining.
 
 #### Export
 
-k2 requires that you make dependencies publicly accessible explicitly. For that, use the export declaration and set an interface that contains the types you need to export.   
-You can add as many export declarations as you need. A compile-time error will be thrown if asking to export a dependency that is not part of the graph.
+K2 processes all provided dependencies, internally constructs a valid dependency graph, and then makes the required dependencies publicly accessible in the generated K\<Graph> file.
+
+To ensure a dependency is publicly accessible in the generated file, you must add an `export` declaration to your graph. 
+The `export` declaration requires a generic type, which must be an interface encompassing all the dependencies you intend to make public.
+
 
 ```kotlin
 @Graph
@@ -236,10 +236,13 @@ fun main() {
 }
 ```
 
+*\* You can add as many export declarations as you need.*   
+*\* A compile-time error will be thrown if a dependency cannot be satisfied with the given dependency graph.*
+
 #### Export shortcut
 
-k2 provides a variation of the scope declaration to export the type directly. These declarations are known as export shortcuts:
-```exportSingle```, ```exportEager```, ```exportFactory```.
+K2 offers a variation of scope declarations that allows for the direct export of a dependency.  
+These declarations are known as 'export shortcuts,' and they include `exportSingle`, `exportEager`, and `exportFactory`.
 
 ```kotlin
 @Graph
@@ -252,6 +255,113 @@ fun main() {
     kGraph.printer.print("This printer instance was exported through a shortcut")
 }
 ```  
+
+#### Graph name
+
+You can override the default generated file/interface name by setting the property name in the `@Graph` annotation.
+
+```kotlin
+@Graph(name = "AwesomeGraph")
+class MyFirstGraph {
+    fun provideNumber() = single { 8 }
+}
+
+fun main() {
+    val awesomeGraph = AwesomeGraph.from(graph = MyFirstGraph())
+}
+```
+
+### Overriding the graph
+
+There are situations where you might need to override the dependencies in your graph. For instance, when running test suites, you might prefer using a Test Double instead of connecting to an actual production service.  
+K2 offers great flexibility with several alternatives for overriding dependencies. Choose the one that best suits your use case.
+
+Consider the following graph as a reference to explore some alternatives for overriding:
+
+```kotlin
+@Graph
+class MyFirstGraph {
+    fun provideLogger() = single { Logger { message -> println(message) } }
+
+    fun exportDeps() = export<Deps>()
+}
+
+interface Deps {
+    val logger: Logger
+}
+
+fun interface Logger {
+    fun log(message: String)
+}
+```
+
+* **Implementing Your Own K\<Graph>**
+
+When you examine a file generated by k2, you'll find that the KGraph entity instantiated is actually an interface defining the graph's output. You can implement this interface with your own implementation.
+
+For example, for the above-defined graph, k2 would generate the following interface:
+
+```kotlin
+public interface KMyFirstGraph {
+  public val deps: Deps
+
+  /* Omitted code */
+}
+```
+
+* **Overriding Providers**
+
+Dependencies can be overridden by setting a `Providers` object when instantiating your graph:
+
+```kotlin
+KMyFirstGraph.from(
+    graph = MyFirstGraph(),
+    overrideWith = object : KMyFirstGraph.Providers {
+        override fun logger() = { Logger { _ -> Unit /* Do nothing */ } } 
+    }
+)
+```
+
+* **Open Your Graph for Extension**
+
+If you control the graph, consider making the graph class open to allow class overriding and then override as needed:
+
+```kotlin
+@Graph
+open class MyFirstGraph {
+    open fun provideLogger() = single { Logger { message -> println(message) } }
+
+    fun exportDeps() = export<Deps>()
+}
+```
+
+```kotlin
+KMyFirstGraph.from(
+    graph = object : MyFirstGraph() {
+        override fun provideLogger() = single { Logger { /* Do nothing */ } }
+    }
+)
+```
+
+* **Adding Logic to Your Graph**
+
+Ultimately, a graph is just a Kotlin class that can be updated as needed. You can add logic to your declarations to return the appropriate value:
+
+```kotlin
+@Graph
+class MyFirstGraph(
+    private val isProduction: Boolean
+) {
+    fun provideLogger() = single {
+        when (isProduction) {
+            true -> Logger { Logger { /* Do nothing */ } }
+            else -> Logger { message -> println(message) }
+        }
+    }
+
+    fun exportDeps() = export<Deps>()
+}
+```
 
 ## Setup
 
@@ -279,8 +389,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.1.4")
-    ksp("com.wokdsem.kinject:compiler:2.1.4")
+    implementation("com.wokdsem.kinject:kinject:2.2.0")
+    ksp("com.wokdsem.kinject:compiler:2.2.0")
 }
 ```
 
@@ -298,8 +408,8 @@ repositories {
 }
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.1.4")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.1.4")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.2.0")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.2.0")
 }
 
 afterEvaluate {
@@ -316,7 +426,7 @@ this [link](https://kotlinlang.org/docs/ksp-multiplatform.html).
 
 #### Generated code
 
-Last, add the following configuration so that your IDE is able to index the generated code (only multiplatform).
+Finally, if your IDE fails to recognize and index the generated code as part of the sourceSet, you can add the following configuration to your Gradle file:
 
 ```kotlin
 kotlin {
@@ -354,31 +464,20 @@ kotlin {
 
 ## Why kInject2?
 
-There is no intent to hide this is a very opinionated solution in terms of how software should be built and especially how a dependency injection framework should be used.
-Needless to say, you can find a bunch of great DI solutions out there, if you are happy with yours, that's great, keep with it.  
-However, if you agree with any of the following pain-points and/or bad smells that other solutions add to your code, I encourage you to keep reading and
-give k2 a try as this solution is designed to avoid them.
+There is no intent to hide the fact that this is a very opinionated solution regarding how software should be built, especially in terms of how a dependency injection framework should be used.
+It goes without saying that there are many excellent DI solutions out there. If you are happy with yours, stick with it.
+However, if you resonate with any of the following pain points or 'bad smells' that other solutions introduce into your code, I encourage you to give k2 a try as this solution is designed to avoid them:
 
-* Your business logic classes shouldn't know anything about the dependency injector, that includes extending the framework classes or adding @Inject annotations or similar.
-* A class shouldn't break the encapsulation to allow the injector to inject dependencies from the outside.
-* Solutions based on reflection are hard to escalate and are error-prone.
-* Kotlin is a powerful language, the injection framework should avail of this power, which includes Typealias, Functions, Generics, and so on.
-* Writing tests to wrap the tool's weaknesses is a waste of time.
-
-## Roadmap
-
-#### 2.2.x
-
-- Allow overriding the default name of exported properties in the generated graph
-
-#### 2.3.x
-
-- Log graph processing time
+* Business logic classes shouldn't have to know anything about the dependency injector. This includes not having to extend framework classes or add @Inject annotations or similar.
+* A class shouldn't have to break its encapsulation to allow an injector to inject dependencies from the outside.
+* Solutions based on reflection can be hard to scale and are prone to errors.
+* Kotlin is a powerful language; a DI framework should leverage its capabilities, which include features like Typealias, Functions, Generics, among others.
+* Writing tests merely to cover the weaknesses of a tool is a waste of time and resources.
 
 ## License
 
 ```
-Copyright 2022 Wokdsem
+Copyright 2023 Wokdsem
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

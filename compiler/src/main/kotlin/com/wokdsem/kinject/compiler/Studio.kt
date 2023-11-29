@@ -5,13 +5,13 @@ import com.google.devtools.ksp.symbol.*
 import com.google.devtools.ksp.symbol.Visibility.PUBLIC
 import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
-import com.wokdsem.kinject.compiler.Exporter.Type.*
+import com.wokdsem.kinject.compiler.Export.Type.*
 import com.wokdsem.kinject.compiler.Statement.*
 
 internal fun processGraphDeclaration(graphDeclaration: KSClassDeclaration): Analysis<Graph> {
     return graphDeclaration.collectGraph().validate { rawGraph -> validateExporters(rawGraph.exporters, rawGraph.providersIndex) }
         .validate { rawGraph -> validateProvidersGraph(rawGraph.providersIndex) }.map { rawGraph ->
-            with(rawGraph) { Graph(root = root, files = files, modules = modules, providers = providersIndex, exporters = exporters.values.toList()) }
+            with(rawGraph) { Graph(root = root, files = files, modules = modules, providers = providersIndex, exports = exporters.values.toList()) }
         }
 }
 
@@ -21,7 +21,7 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
         val graphId = id
         val modulesIndex = mutableMapOf<Id, Module>()
         val providersIndex = mutableMapOf<Id, Provider>()
-        val exportersIndex = mutableMapOf<Id, Exporter>()
+        val exportersIndex = mutableMapOf<Id, Export>()
 
         fun KSClassDeclaration.process(): Analysis<Int> {
 
@@ -49,7 +49,7 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
 
             fun appendExporter(declaration: Declaration, delegated: Boolean): Analysis<Unit> {
                 val exporterType = if (delegated) Delegated else Bracket(dependencies = declaration.dependencies)
-                val exporter = with(declaration) { Exporter(id = node.id, node = node, type = exporterType, declaration = this.declaration) }
+                val exporter = with(declaration) { Export(id = node.id, node = node, type = exporterType, declaration = this.declaration) }
                 val previousExporter = exportersIndex.put(exporter.id, exporter) ?: return SUCCESS
                 return fail(message = "Exporters clash, an exporter can only be declared once", exporter.declaration, previousExporter.declaration)
             }
@@ -82,7 +82,7 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
     }
 }
 
-private fun validateExporters(exporters: Map<Id, Exporter>, providersIndex: Map<Id, Provider>): Analysis<Unit> {
+private fun validateExporters(exporters: Map<Id, Export>, providersIndex: Map<Id, Provider>): Analysis<Unit> {
     return exporters.values.asSequence().filter { exporter -> exporter.type is Bracket }.onEachUntilError { exporter ->
         if (exporter.id in providersIndex) {
             return@onEachUntilError fail<Unit>("Exporter declaration clash with provider", exporter.declaration, providersIndex.getValue(exporter.id).declaration)
@@ -266,7 +266,7 @@ private fun KSPropertyDeclaration.validateExportDependency(): Analysis<KSPropert
     return success
 }
 
-private class RawGraph(val root: KSClassDeclaration, val files: List<KSFile>, val modules: List<Module>, val providersIndex: Map<Id, Provider>, val exporters: Map<Id, Exporter>)
+private class RawGraph(val root: KSClassDeclaration, val files: List<KSFile>, val modules: List<Module>, val providersIndex: Map<Id, Provider>, val exporters: Map<Id, Export>)
 
 private sealed interface Statement {
     companion object {
