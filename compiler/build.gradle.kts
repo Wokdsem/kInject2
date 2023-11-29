@@ -11,8 +11,8 @@ tasks.test { useJUnitPlatform() }
 dependencies {
     api(project(":kinject"))
     implementation("com.google.devtools.ksp:symbol-processing-api:1.9.20-1.0.14")
-    implementation("com.squareup:kotlinpoet:1.14.2")
-    implementation("com.squareup:kotlinpoet-ksp:1.14.2")
+    implementation("com.squareup:kotlinpoet:1.15.1")
+    implementation("com.squareup:kotlinpoet-ksp:1.15.1")
 
     compileOnly("com.google.auto.service:auto-service:1.1.1")
     kapt("com.google.auto.service:auto-service:1.1.1")

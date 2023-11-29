@@ -20,7 +20,7 @@ class GraphTest {
         compile(graph).classLoader.run {
             val kTestGraphClass = loadClass("KTestGraph").kotlin
             val testGraph = checkNotNull(value = loadClass("TestGraph").kotlin.primaryConstructor).call()
-            val kGraphInstance = with(checkNotNull(kTestGraphClass.companionObject)) { declaredFunctions.first { it.name == "from" }.call(objectInstance, testGraph) }
+            val kGraphInstance = with(checkNotNull(kTestGraphClass.companionObject)) { declaredFunctions.first { it.name == "from" }.call(objectInstance, testGraph, null) }
             assert(value = kTestGraphClass.isInstance(value = kGraphInstance))
         }
     }
