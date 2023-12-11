@@ -1,7 +1,7 @@
 
 <img src="assets/k2logo.png" width="128" height="128" alt="k2 logo">
 
-# *kInject2* (k2)
+# *kInject2* (kI2)
 
 #### A kotlin multiplatform dependency injection framework powered by [KSP](https://github.com/google/ksp) & [KotlinPoet](https://github.com/square/kotlinpoet)
 
@@ -17,12 +17,12 @@ Soon, concepts such as Inversion of Control, Inversion of dependency, and Depend
 
 ## This is kInject2
 
-kInject2 (k2) is a multi-platform, compile-time dependency injection framework for Kotlin. It is designed to be easy-to-learn and easy-to-use.
+kInject2 (kI2) is a multi-platform, compile-time dependency injection framework for Kotlin. It is designed to be easy-to-learn and easy-to-use.
 
 ### The dependency graph
 
-The first step to use k2 is to build a dependency graph. To do this, we annotate a class with ```@Graph```.  
-This annotation will let k2 know that we want to use this class as a dependency graph. 
+The first step to use kI2 is to build a dependency graph. To do this, we annotate a class with ```@Graph```.  
+This annotation will let kI2 know that we want to use this class as a dependency graph. 
 
 ```kotlin
 @Graph
@@ -61,7 +61,7 @@ fun provideNumber(): Single<Number> = single { 8 }
 #### Scopes
 
 Dependencies are always declared inside a scope. The scope determines when a dependency is instantiated as well as its reusability.  
-k2 provides the following scopes: 
+kI2 provides the following scopes: 
 
 * **Single** The single scope guarantees that only one instance of this dependency will be created in the graph instance. The dependency won't be instantiated until it is first required (lazy).  
 
@@ -85,7 +85,7 @@ fun provideSingleNumber() = factory { 5 }
 
 #### Type alias
 
-You can declare a dependency type only once; otherwise, k2 will raise an error at compilation time.  
+You can declare a dependency type only once; otherwise, kI2 will raise an error at compilation time.  
 However, there may be situations where you need to add multiple dependencies of the same type to the graph. In these cases, you can leverage `typealias` to distinguish between them. 
 
 ```kotlin
@@ -100,7 +100,7 @@ class MyFirstGraph {
 
 #### Type erasure
 
-Type erasure, not a problem for k2. If you declare dependencies with generics, k2 will be able to deal with them.
+Type erasure, not a problem for kI2. If you declare dependencies with generics, kI2 will be able to deal with them.
 
 ```kotlin
 @Graph
@@ -123,7 +123,7 @@ class MyFirstGraph {
 }
 ```
 
-*\* k2 will throw a compile-time error if it detects a dependency cycle, or if any of the dependencies are unknown.*
+*\* kI2 will throw a compile-time error if it detects a dependency cycle, or if any of the dependencies are unknown.*
 
 #### Optional types
 
@@ -185,11 +185,11 @@ class AnotherModule {
 
 ---
 
-Now that you understand how to declare a dependency graph and its dependencies, let’s explore the capabilities of k2.
+Now that you understand how to declare a dependency graph and its dependencies, let’s explore the capabilities of kI2.
 
 ### Compiling the graph
 
-Graphs are analyzed at compile-time, and if all requirements are satisfied, k2 generates a K\<Graph> file that includes everything necessary to start retrieving your dependencies.
+Graphs are analyzed at compile-time, and if all requirements are satisfied, kI2 generates a K\<Graph> file that includes everything necessary to start retrieving your dependencies.
 
 ```kotlin
 @Graph
@@ -206,7 +206,7 @@ Congratulations on getting your first graph up and running! However, you'll noti
 
 #### Export
 
-K2 processes all provided dependencies, internally constructs a valid dependency graph, and then makes the required dependencies publicly accessible in the generated K\<Graph> file.
+kI2 processes all provided dependencies, internally constructs a valid dependency graph, and then makes the required dependencies publicly accessible in the generated K\<Graph> file.
 
 To ensure a dependency is publicly accessible in the generated file, you must add an `export` declaration to your graph. 
 The `export` declaration requires a generic type, which must be an interface encompassing all the dependencies you intend to make public.
@@ -241,7 +241,7 @@ fun main() {
 
 #### Export shortcut
 
-K2 offers a variation of scope declarations that allows for the direct export of a dependency.  
+kI2 offers a variation of scope declarations that allows for the direct export of a dependency.  
 These declarations are known as 'export shortcuts,' and they include `exportSingle`, `exportEager`, and `exportFactory`.
 
 ```kotlin
@@ -274,7 +274,7 @@ fun main() {
 ### Overriding the graph
 
 There are situations where you might need to override the dependencies in your graph. For instance, when running test suites, you might prefer using a Test Double instead of connecting to an actual production service.  
-K2 offers great flexibility with several alternatives for overriding dependencies. Choose the one that best suits your use case.
+kI2 offers great flexibility with several alternatives for overriding dependencies. Choose the one that best suits your use case.
 
 Consider the following graph as a reference to explore some alternatives for overriding:
 
@@ -297,9 +297,9 @@ fun interface Logger {
 
 * **Implementing Your Own K\<Graph>**
 
-When you examine a file generated by k2, you'll find that the KGraph entity instantiated is actually an interface defining the graph's output. You can implement this interface with your own implementation.
+When you examine a file generated by kI2, you'll find that the KGraph entity instantiated is actually an interface defining the graph's output. You can implement this interface with your own implementation.
 
-For example, for the above-defined graph, k2 would generate the following interface:
+For example, for the above-defined graph, kI2 would generate the following interface:
 
 ```kotlin
 public interface KMyFirstGraph {
@@ -466,7 +466,7 @@ kotlin {
 
 There is no intent to hide the fact that this is a very opinionated solution regarding how software should be built, especially in terms of how a dependency injection framework should be used.
 It goes without saying that there are many excellent DI solutions out there. If you are happy with yours, stick with it.
-However, if you resonate with any of the following pain points or 'bad smells' that other solutions introduce into your code, I encourage you to give k2 a try as this solution is designed to avoid them:
+However, if you resonate with any of the following pain points or 'bad smells' that other solutions introduce into your code, I encourage you to give kI2 a try as this solution is designed to avoid them:
 
 * Business logic classes shouldn't have to know anything about the dependency injector. This includes not having to extend framework classes or add @Inject annotations or similar.
 * A class shouldn't have to break its encapsulation to allow an injector to inject dependencies from the outside.
