@@ -15,7 +15,13 @@ private const val OVERRIDE_GRAPH_PARAM = "overrideWith"
 private const val OVERRIDE_PARAM = "_P"
 
 private val suppress = listOf(
-    "RedundantVisibilityModifier", "RemoveRedundantBackticks", "RemoveRedundantQualifierName", "PrivatePropertyName"
+    "RedundantVisibilityModifier",
+    "RemoveRedundantBackticks",
+    "RemoveRedundantQualifierName",
+    "ClassName",
+    "PrivatePropertyName",
+    "PropertyName",
+    "FunctionName",
 )
 
 internal fun generate(graph: Graph, codeGenerator: CodeGenerator) {
@@ -128,7 +134,7 @@ private fun String.sanitize(): String {
     return asSequence().filter { it != '`' }.joinToString(separator = "") { char ->
         when (char) {
             '_' -> "__"
-            '<', '>', '.' -> "_"
+            '<', '>', '.', ',' -> "_"
             else -> char.toString()
         }
     }

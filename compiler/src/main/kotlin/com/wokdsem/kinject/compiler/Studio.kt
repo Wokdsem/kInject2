@@ -237,7 +237,7 @@ private fun KSFunctionDeclaration.validateDeclaration(): Analysis<KSFunctionDecl
 private fun KSTypeReference.settle(): Analysis<KSType> {
     val type = resolve()
     return when {
-        type.isError -> fail("x", this)
+        type.isError -> fail("Type cannot be resolved. For further details about this error, refer to the 'Well-known Issues' section in the readme.", this)
         else -> type.success
     }
 }
