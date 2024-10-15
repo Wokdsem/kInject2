@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 repositories {
     mavenCentral()
 }
@@ -5,4 +7,6 @@ repositories {
 group = "com.wokdsem.kinject"
 version = project.property("version") as String
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> { kotlinOptions.jvmTarget = "1.8" }
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+    compilerOptions.jvmTarget.set(JvmTarget.JVM_1_8)
+}

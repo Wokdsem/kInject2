@@ -371,7 +371,7 @@ First, apply the KSP plugin in your project build.gradle:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "1.9.20-1.0.14"
+    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
 }
 ```
 
