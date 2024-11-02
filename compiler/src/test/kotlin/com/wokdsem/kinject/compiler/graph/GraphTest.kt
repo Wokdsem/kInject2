@@ -2,11 +2,13 @@ package com.wokdsem.kinject.compiler.graph
 
 import com.tschuchort.compiletesting.SourceFile.Companion.kotlin
 import com.wokdsem.kinject.compiler.compile
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.primaryConstructor
 
+@OptIn(ExperimentalCompilerApi::class)
 class GraphTest {
 
     @Test

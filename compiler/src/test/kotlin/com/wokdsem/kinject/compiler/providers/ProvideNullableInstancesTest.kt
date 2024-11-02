@@ -3,8 +3,10 @@ package com.wokdsem.kinject.compiler.providers
 import com.tschuchort.compiletesting.SourceFile
 import com.wokdsem.kinject.compiler.asserCompilationError
 import com.wokdsem.kinject.compiler.compile
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import org.junit.jupiter.api.Test
 
+@OptIn(ExperimentalCompilerApi::class)
 class ProvideNullableInstancesTest {
 
     @Test fun `assert that a provider that supplies a nullable dependency clashes with another provider that supplies a non-nullable instance of that type`() {

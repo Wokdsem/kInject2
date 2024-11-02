@@ -1,9 +1,12 @@
+@file:OptIn(ExperimentalCompilerApi::class)
+
 package com.wokdsem.kinject.compiler
 
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.kspWithCompilation
 import com.tschuchort.compiletesting.symbolProcessorProviders
+import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObject

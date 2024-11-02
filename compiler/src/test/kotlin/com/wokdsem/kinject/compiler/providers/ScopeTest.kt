@@ -82,14 +82,20 @@ class ScopeTest {
              import com.wokdsem.kinject.Graph
              import com.wokdsem.kinject.scope.exportEager
              import com.wokdsem.kinject.scope.single
-             class Dep(number: Int)
+             class Dep(val number: Int)
+             class Dep2(val number: Int)
              @Graph class TestGraph {
-                fun provideDep(number: Int) = exportEager { Dep(number) }
-                fun provideNumber() = single { 5 }
+                fun provideDep(number: Int, dep: Dep2) = exportEager { Dep(number) }
+                fun provideNumber() = exportEager { 5 }
+                fun provideDep2(number: Int) = exportEager { Dep2(number) }
              }
         """
         )
-        getCompilation(graph, "TestGraph")
+        val compilation = getCompilation(graph, "TestGraph")
+        runCatching {
+            compilation.getKDep("dep")
+            compilation.getKDep("dep2")
+        }.onFailure { error("Wrong initialization order") }
     }
 
 }
