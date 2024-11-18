@@ -3,7 +3,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 plugins {
     kotlin("multiplatform")
     id("com.android.library")
-    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
 }
 
 kotlin {
@@ -40,8 +40,8 @@ kotlin {
 
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.2.2")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.2.2")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.2.3")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.2.3")
 }
 
 afterEvaluate {

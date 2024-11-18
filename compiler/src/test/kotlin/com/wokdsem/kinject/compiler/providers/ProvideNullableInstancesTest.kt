@@ -29,9 +29,10 @@ class ProvideNullableInstancesTest {
             "TestGraph.kt", """
              import com.wokdsem.kinject.Graph
              import com.wokdsem.kinject.scope.single
+             import com.wokdsem.kinject.scope.exportSingle
              @Graph class TestGraph {
                 fun provideN() = single { 2 }
-                fun provideWithNullableStringDep(times: Int?) = single { "*".repeat(times ?: 0) }
+                fun provideWithNullableStringDep(times: Int?) = exportSingle { "*".repeat(times ?: 0) }
              }
             """
         )

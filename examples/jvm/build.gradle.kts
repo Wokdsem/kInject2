@@ -1,8 +1,6 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
     application
 }
 
@@ -11,8 +9,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.2.2")
-    ksp("com.wokdsem.kinject:compiler:2.2.2")
+    implementation("com.wokdsem.kinject:kinject:2.2.3")
+    ksp("com.wokdsem.kinject:compiler:2.2.3")
 }
 
 application {

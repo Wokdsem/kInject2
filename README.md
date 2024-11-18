@@ -371,7 +371,7 @@ First, apply the KSP plugin in your project build.gradle:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.0.21-1.0.25"
+    id("com.google.devtools.ksp") version "2.0.21-1.0.28"
 }
 ```
 
@@ -389,8 +389,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.2.1")
-    ksp("com.wokdsem.kinject:compiler:2.2.1")
+    implementation("com.wokdsem.kinject:kinject:2.2.3")
+    ksp("com.wokdsem.kinject:compiler:2.2.3")
 }
 ```
 
@@ -408,8 +408,8 @@ repositories {
 }
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.2.1")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.2.1")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.2.3")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.2.3")
 }
 
 afterEvaluate {

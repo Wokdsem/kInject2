@@ -29,12 +29,12 @@ class ProvideDuplicatedTest {
         val graph = SourceFile.kotlin(
             "TestGraph.kt", """
              import com.wokdsem.kinject.Graph
-             import com.wokdsem.kinject.scope.factory
-             import com.wokdsem.kinject.scope.Factory
+             import com.wokdsem.kinject.scope.exportFactory
+             import com.wokdsem.kinject.scope.ExportedFactory
              typealias AnotherString = String
              @Graph class TestGraph {
-                fun provideString() = factory { "First" }
-                fun provideAnotherString():Factory<AnotherString> = factory { "Second" }
+                fun provideString() = exportFactory { "First" }
+                fun provideAnotherString(): ExportedFactory<AnotherString> = exportFactory { "Second" }
              }
         """
         )

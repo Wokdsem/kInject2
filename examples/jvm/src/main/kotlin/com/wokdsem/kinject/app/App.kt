@@ -21,7 +21,9 @@ interface Movies {
     val adviser: MoviesAdviser get() = MoviesAdviser(service = LocalMoviesService())
 }
 
-class MoviesAdviser(private val service: MoviesService) {
+class MoviesAdviser(
+    private val service: MoviesService
+) {
     fun recommendAMovie() = "You'll have a lot of fun watching ${service.getMovies().shuffled().first()}"
 }
 
@@ -30,5 +32,5 @@ interface MoviesService {
 }
 
 class LocalMoviesService : MoviesService {
-    override fun getMovies(): List<String> = listOf("Interestelar", "The Martian")
+    override fun getMovies(): List<String> = listOf("Interstellar", "The Martian")
 }

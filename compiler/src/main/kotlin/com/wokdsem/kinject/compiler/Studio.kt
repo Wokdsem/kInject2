@@ -9,8 +9,9 @@ import com.wokdsem.kinject.compiler.Export.Type.*
 import com.wokdsem.kinject.compiler.Statement.*
 
 internal fun processGraphDeclaration(graphDeclaration: KSClassDeclaration): Analysis<Graph> {
-    return graphDeclaration.collectGraph().validate { rawGraph -> validateExporters(rawGraph.exporters, rawGraph.providersIndex) }
-        .validate { rawGraph -> validateProvidersGraph(rawGraph.providersIndex) }.map { rawGraph ->
+    return graphDeclaration.collectGraph()
+        .validate { rawGraph -> validateExporters(rawGraph.exporters, rawGraph.providersIndex) }
+        .validate { rawGraph -> validateProvidersGraph(rawGraph.providersIndex, rawGraph.claimedProviders) }.map { rawGraph ->
             with(rawGraph) { Graph(root = root, files = files, modules = modules, providers = providersIndex, exports = exporters.values.toList()) }
         }
 }
@@ -22,6 +23,7 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
         val modulesIndex = mutableMapOf<Id, Module>()
         val providersIndex = mutableMapOf<Id, Provider>()
         val exportersIndex = mutableMapOf<Id, Export>()
+        val claimedProviders = mutableSetOf<Id>()
 
         fun KSClassDeclaration.process(): Analysis<Int> {
 
@@ -62,12 +64,14 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
                         Irrelevant -> SUCCESS
                         is Import -> appendModule(statement)
                         is Declaration -> {
-                            fun appendExported(scope: Scope) = appendProvider(statement, scope).flatMap { appendExporter(statement, true) }
+                            fun appendExport() = appendExporter(statement, false).onSuccess { claimedProviders += statement.dependencies.map(Dependency::id) }
+                            fun appendProvider(scope: Scope) = appendProvider(statement, scope).onSuccess { claimedProviders += statement.dependencies.map(Dependency::id) }
+                            fun appendExported(scope: Scope) = appendProvider(scope).flatMap { appendExporter(statement, true) }.onSuccess { claimedProviders += statement.node.id }
                             when (statement.type) {
-                                Declaration.Type.FACTORY -> appendProvider(statement, Scope.FACTORY)
-                                Declaration.Type.SINGLE -> appendProvider(statement, Scope.SINGLE)
-                                Declaration.Type.EAGER -> appendProvider(statement, Scope.EAGER)
-                                Declaration.Type.EXPORT -> appendExporter(statement, false)
+                                Declaration.Type.FACTORY -> appendProvider(Scope.FACTORY)
+                                Declaration.Type.SINGLE -> appendProvider(Scope.SINGLE)
+                                Declaration.Type.EAGER -> appendProvider(Scope.EAGER)
+                                Declaration.Type.EXPORT -> appendExport()
                                 Declaration.Type.EXPORTED_FACTORY -> appendExported(Scope.FACTORY)
                                 Declaration.Type.EXPORTED_SINGLE -> appendExported(Scope.SINGLE)
                                 Declaration.Type.EXPORTED_EAGER -> appendExported(Scope.EAGER)
@@ -78,7 +82,16 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
             }.map { providersCount }
         }
 
-        return graph.process().map { RawGraph(root = this, files = files, modules = modulesIndex.values.toList(), providersIndex = providersIndex, exporters = exportersIndex) }
+        return graph.process().map {
+            RawGraph(
+                root = this,
+                files = files,
+                modules = modulesIndex.values.toList(),
+                providersIndex = providersIndex,
+                exporters = exportersIndex,
+                claimedProviders = claimedProviders
+            )
+        }
     }
 }
 
@@ -95,7 +108,7 @@ private fun validateExporters(exporters: Map<Id, Export>, providersIndex: Map<Id
     }
 }
 
-private fun validateProvidersGraph(providers: Map<Id, Provider>): Analysis<Unit> {
+private fun validateProvidersGraph(providers: Map<Id, Provider>, directDependencies: Set<Id>): Analysis<Unit> {
     val validated = mutableSetOf<Id>()
     fun validateProvider(provider: Provider, path: Set<Id> = emptySet()): Analysis<Unit> {
         provider.dependencies.forEach { dep ->
@@ -106,6 +119,9 @@ private fun validateProvidersGraph(providers: Map<Id, Provider>): Analysis<Unit>
             val depProvider = providers.getOrElse(dep.id) { return fail("The provider for dependency ${dep.name} is missing", provider.declaration) }
             if (!dep.isNullable && depProvider.isNullable) return fail("The provider for dependency ${dep.name} requires that ${dep.name} to be nullable", provider.declaration)
             if (!isValidated) validateProvider(depProvider, path + provider.id).getOr { failure -> return failure }
+        }
+        if ((provider.scope == Scope.SINGLE || provider.scope == Scope.FACTORY) && provider.id !in directDependencies) {
+            return fail("Dead/unused provider declaration", provider.declaration)
         }
         validated += provider.id
         return SUCCESS
@@ -266,7 +282,14 @@ private fun KSPropertyDeclaration.validateExportDependency(): Analysis<KSPropert
     return success
 }
 
-private class RawGraph(val root: KSClassDeclaration, val files: List<KSFile>, val modules: List<Module>, val providersIndex: Map<Id, Provider>, val exporters: Map<Id, Export>)
+private class RawGraph(
+    val root: KSClassDeclaration,
+    val files: List<KSFile>,
+    val modules: List<Module>,
+    val providersIndex: Map<Id, Provider>,
+    val exporters: Map<Id, Export>,
+    val claimedProviders: Set<Id>
+)
 
 private sealed interface Statement {
     companion object {
