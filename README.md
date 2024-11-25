@@ -271,6 +271,23 @@ fun main() {
 }
 ```
 
+### Visualizing your Dependency Graph
+
+As a dependency graph grows, understanding its complexity can become challenging. To simplify this task, KSP can generate visual representations of your graphs.
+
+To enable this feature, add the following ksp argument to your build gradle file:
+
+```kotlin
+ksp {
+    arg("kInject-graphDir", layout.projectDirectory.dir(".kinject").asFile.absolutePath)
+}
+```
+
+The kInject-graphDir argument specifies the directory where the generated HTML files containing the visual representations will be placed. Please note that these files are generated only once
+and are updated/regenerated only when the graph source files are modified.
+
+<img src="assets/graph.png" height="420" alt="k2 logo" style="display: block; margin: 0 auto" />
+
 ### Overriding the graph
 
 There are situations where you might need to override the dependencies in your graph. For instance, when running test suites, you might prefer using a Test Double instead of connecting to an actual production service.  
@@ -389,8 +406,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.2.3")
-    ksp("com.wokdsem.kinject:compiler:2.2.3")
+    implementation("com.wokdsem.kinject:kinject:2.3.0")
+    ksp("com.wokdsem.kinject:compiler:2.3.0")
 }
 ```
 
@@ -408,8 +425,8 @@ repositories {
 }
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.2.3")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.2.3")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.3.0")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.3.0")
 }
 
 afterEvaluate {

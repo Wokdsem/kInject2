@@ -9,8 +9,11 @@ internal class Graph(val root: KSClassDeclaration, val files: List<KSFile>, val 
 @JvmInline
 internal value class Id(val id: String)
 
-internal class Module(val id: Id, val node: KSType, val source: Id, val declaration: KSFunctionDeclaration)
-internal class Provider(val id: Id, val scope: Scope, val node: KSType, val dependencies: List<Dependency>, val source: Id, val declaration: KSFunctionDeclaration)
+internal class Module(val id: Id, val node: KSType, val providers: List<Id>, val imports: List<Id>, val source: Id, val declaration: KSFunctionDeclaration)
+internal class Provider(
+    val id: Id, val scope: Scope, val exported: Boolean, val node: KSType, val dependencies: List<Dependency>, val source: Id, val declaration: KSFunctionDeclaration
+)
+
 internal class Export(val id: Id, val node: KSType, val type: Type, val declaration: KSFunctionDeclaration) {
     sealed interface Type {
         data object Delegated : Type

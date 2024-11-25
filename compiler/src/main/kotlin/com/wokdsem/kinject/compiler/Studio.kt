@@ -17,56 +17,76 @@ internal fun processGraphDeclaration(graphDeclaration: KSClassDeclaration): Anal
 }
 
 private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
+    class ModuleDeclaration(val providers: List<Id>, val imports: List<Id>)
     return validateGraphDeclaration().flatMap { graph ->
-        val files = mutableListOf<KSFile>()
-        val graphId = id
+        val files = mutableSetOf<KSFile>()
         val modulesIndex = mutableMapOf<Id, Module>()
         val providersIndex = mutableMapOf<Id, Provider>()
         val exportersIndex = mutableMapOf<Id, Export>()
         val claimedProviders = mutableSetOf<Id>()
 
-        fun KSClassDeclaration.process(): Analysis<Int> {
-
-            var providersCount = 0
+        fun KSClassDeclaration.process(modulesPath: Map<Id, KSFunctionDeclaration> = emptyMap()): Analysis<ModuleDeclaration> {
 
             fun appendModule(import: Import): Analysis<Unit> {
-                fun clashError(clash: KSDeclaration) = fail<Unit>("Modules clash, a module can be imported only once", clash, import.declaration)
-                val module = with(import) { Module(id = node.id, node = node, source = id, declaration = this.declaration) }
-                if (module.id == graphId) return clashError(this@collectGraph)
-                modulesIndex.put(module.id, module)?.let { previousModule -> return clashError(previousModule.declaration) }
-                return import.nodeDeclaration.process().validate { count ->
-                    if (count == 0) fail("A module must provide at least one dependency", import.declaration) else SUCCESS
-                }.onSuccess { counter -> providersCount += counter }.map { }
+                fun fail(node: KSNode) = fail<Unit>("Modules clash, a module can be imported only once", node, import.declaration)
+                val moduleId = import.node.id
+                return when (moduleId) {
+                    id -> fail(this)
+                    in modulesPath -> fail(node = modulesPath.getValue(moduleId))
+                    in modulesIndex -> fail(node = modulesIndex.getValue(moduleId).declaration)
+                    else -> import.nodeDeclaration.process(modulesPath = modulesPath + (moduleId to import.declaration)).validate { declaration ->
+                        when {
+                            declaration.providers.isNotEmpty() || declaration.imports.isNotEmpty() -> SUCCESS
+                            else -> fail("A module must at least provide one dependency or import another module", import.declaration)
+                        }.onSuccess { modulesIndex[moduleId] = Module(moduleId, import.node, declaration.providers, declaration.imports, id, import.declaration) }
+                    }
+                }.map { }
             }
 
-            fun appendProvider(declaration: Declaration, scope: Scope): Analysis<Unit> {
-                providersCount++
-                val provider = with(declaration) {
-                    Provider(id = node.id, scope = scope, node = node, dependencies = dependencies, source = id, declaration = this.declaration)
-                }
-                val previousProvider = providersIndex.put(provider.id, provider) ?: return SUCCESS
-                val failureMessage = "Providers clash, a dependency type can only be provided once - typealias may help break the clash"
-                return fail(message = failureMessage, provider.declaration, previousProvider.declaration)
+            fun appendProvider(declaration: Declaration, scope: Scope, exported: Boolean): Analysis<Unit> {
+                val providerId = declaration.node.id
+                return when (providerId) {
+                    !in providersIndex -> SUCCESS
+                    else -> {
+                        val failureMessage = "Providers clash, a dependency type can only be provided once - typealias may help resolve the clash"
+                        fail(message = failureMessage, declaration.declaration, providersIndex.getValue(providerId).declaration)
+                    }
+                }.onSuccess { providersIndex[providerId] = with(declaration) { Provider(providerId, scope, exported, node, dependencies, id, this.declaration) } }
             }
 
             fun appendExporter(declaration: Declaration, delegated: Boolean): Analysis<Unit> {
-                val exporterType = if (delegated) Delegated else Bracket(dependencies = declaration.dependencies)
-                val exporter = with(declaration) { Export(id = node.id, node = node, type = exporterType, declaration = this.declaration) }
-                val previousExporter = exportersIndex.put(exporter.id, exporter) ?: return SUCCESS
-                return fail(message = "Exporters clash, an exporter can only be declared once", exporter.declaration, previousExporter.declaration)
+                val exporterId = declaration.node.id
+                return when (exporterId) {
+                    !in exportersIndex -> SUCCESS
+                    else -> fail(message = "Exporters clash, an exporter can only be declared once", declaration.declaration, exportersIndex.getValue(exporterId).declaration)
+                }.onSuccess {
+                    val exporterType = if (delegated) Delegated else Bracket(dependencies = declaration.dependencies)
+                    exportersIndex[exporterId] = with(declaration) { Export(exporterId, node, exporterType, this.declaration) }
+                }
             }
 
             containingFile?.let { file -> files += file }
+            val providers = mutableListOf<Id>()
+            val imports = mutableListOf<Id>()
             val requirePublicVisibility = getVisibility() == PUBLIC
             return getDeclaredFunctions().filter { declaration -> declaration.getVisibility() == PUBLIC }.onEachUntilError { method ->
                 method.processStatement(requirePublicVisibility).flatMap { statement ->
                     when (statement) {
                         Irrelevant -> SUCCESS
-                        is Import -> appendModule(statement)
+                        is Import -> appendModule(statement).onSuccess { imports += statement.node.id }
                         is Declaration -> {
                             fun appendExport() = appendExporter(statement, false).onSuccess { claimedProviders += statement.dependencies.map(Dependency::id) }
-                            fun appendProvider(scope: Scope) = appendProvider(statement, scope).onSuccess { claimedProviders += statement.dependencies.map(Dependency::id) }
-                            fun appendExported(scope: Scope) = appendProvider(scope).flatMap { appendExporter(statement, true) }.onSuccess { claimedProviders += statement.node.id }
+                            fun appendProvider(scope: Scope, exported: Boolean = false): Analysis<Unit> {
+                                return appendProvider(statement, scope, exported)
+                                    .onSuccess {
+                                        providers += statement.node.id
+                                        claimedProviders += statement.dependencies.map(Dependency::id)
+                                    }
+                            }
+
+                            fun appendExported(scope: Scope): Analysis<Unit> {
+                                return appendProvider(scope, true).flatMap { appendExporter(statement, true) }.onSuccess { claimedProviders += statement.node.id }
+                            }
                             when (statement.type) {
                                 Declaration.Type.FACTORY -> appendProvider(Scope.FACTORY)
                                 Declaration.Type.SINGLE -> appendProvider(Scope.SINGLE)
@@ -79,13 +99,13 @@ private fun KSClassDeclaration.collectGraph(): Analysis<RawGraph> {
                         }
                     }
                 }
-            }.map { providersCount }
+            }.map { ModuleDeclaration(providers = providers, imports = imports) }
         }
 
         return graph.process().map {
             RawGraph(
                 root = this,
-                files = files,
+                files = files.toList(),
                 modules = modulesIndex.values.toList(),
                 providersIndex = providersIndex,
                 exporters = exportersIndex,

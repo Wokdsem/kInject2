@@ -38,10 +38,13 @@ kotlin {
     sourceSets.commonMain { kotlin.srcDir("build/generated/ksp/metadata/commonmain/kotlin") }
 }
 
+ksp {
+    arg("kInject-graphDir", layout.projectDirectory.dir(".kinject").asFile.absolutePath)
+}
 
 dependencies {
-    commonMainImplementation("com.wokdsem.kinject:kinject:2.2.3")
-    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.2.3")
+    commonMainImplementation("com.wokdsem.kinject:kinject:2.3.0")
+    add("kspCommonMainMetadata", "com.wokdsem.kinject:compiler:2.3.0")
 }
 
 afterEvaluate {

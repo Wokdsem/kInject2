@@ -2,10 +2,7 @@
 
 package com.wokdsem.kinject.compiler
 
-import com.tschuchort.compiletesting.KotlinCompilation
-import com.tschuchort.compiletesting.SourceFile
-import com.tschuchort.compiletesting.kspWithCompilation
-import com.tschuchort.compiletesting.symbolProcessorProviders
+import com.tschuchort.compiletesting.*
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
@@ -14,11 +11,16 @@ import kotlin.reflect.full.declaredFunctions
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.primaryConstructor
 
-internal fun compile(vararg sources: SourceFile): KotlinCompilation.Result {
+private val defaultConfiguration = CompilerConfiguration()
+
+internal fun compile(vararg sources: SourceFile) = compile(defaultConfiguration, *sources)
+
+internal fun compile(configuration: CompilerConfiguration, vararg sources: SourceFile): KotlinCompilation.Result {
     return KotlinCompilation().apply {
         inheritClassPath = true
         kspWithCompilation = true
         this.sources = sources.toList()
+        this.kspArgs = if (configuration.enableGraphGeneration) mutableMapOf("kInject-graphDir" to workingDir.absolutePath) else mutableMapOf()
         symbolProcessorProviders = listOf(KinjectProcessorProvider())
     }.compile()
 }
@@ -53,6 +55,10 @@ internal fun asserCompilationError(graph: SourceFile, expectedGraph: String, err
         }
     }
 }
+
+internal class CompilerConfiguration(
+    val enableGraphGeneration: Boolean = false
+)
 
 internal interface Compilation {
     fun getDep(dep: String): Any?

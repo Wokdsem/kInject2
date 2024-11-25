@@ -21,7 +21,7 @@ class ProvideNullableInstancesTest {
              }
             """
         )
-        asserCompilationError(graph, "KTestGraph", "Providers clash, a dependency type can only be provided once - typealias may help break the clash")
+        asserCompilationError(graph, "KTestGraph", "Providers clash, a dependency type can only be provided once - typealias may help resolve the clash")
     }
 
     @Test fun `assert that a nullable provider's dependency can be supplied by a provider that provides a non-nullable dependency of that type`() {

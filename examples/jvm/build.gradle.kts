@@ -4,15 +4,19 @@ plugins {
     application
 }
 
+application {
+    mainClass.set("com.wokdsem.kinject.app.AppKt")
+}
+
+ksp {
+    arg("kInject-graphDir", layout.projectDirectory.dir(".kinject").asFile.absolutePath)
+}
+
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation("com.wokdsem.kinject:kinject:2.2.3")
-    ksp("com.wokdsem.kinject:compiler:2.2.3")
-}
-
-application {
-    mainClass.set("com.wokdsem.kinject.app.AppKt")
+    implementation("com.wokdsem.kinject:kinject:2.3.0")
+    ksp("com.wokdsem.kinject:compiler:2.3.0")
 }

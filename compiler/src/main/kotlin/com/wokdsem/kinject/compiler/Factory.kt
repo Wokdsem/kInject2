@@ -140,9 +140,9 @@ private fun String.sanitize(): String {
     }
 }
 
-private fun List<Id>.name(): Map<Id, String> {
+private fun Iterable<Id>.name(): Map<Id, String> {
     val regex = """^([^<]+)\b(?:<(.+)>)?$""".toRegex()
-    fun List<Id>.nameByGrade(grade: Int = 1): List<Pair<Id, String>> {
+    fun Iterable<Id>.nameByGrade(grade: Int = 1): List<Pair<Id, String>> {
         fun String.onGrade(): String {
             var count = grade
             return takeLastWhile { it != '.' || --count > 0 }
@@ -155,8 +155,8 @@ private fun List<Id>.name(): Map<Id, String> {
             val genericPart = generic.takeIf(String::isNotEmpty)?.let { "_of${it.split(", ").joinToString(separator = "_and", transform = String::name)}" }.orEmpty()
             return typePart + genericPart
         }
-        return groupBy { id -> id.id.name().replaceFirstChar(Char::lowercase) }.entries.flatMap { (name, id) ->
-            if (id.size == 1) listOf(element = id.first() to name) else id.nameByGrade(grade + 1)
+        return groupBy { id -> id.id.name().replaceFirstChar(Char::lowercase) }.entries.flatMap { (name, ids) ->
+            if (ids.size == 1) listOf(element = ids.first() to name) else ids.nameByGrade(grade + 1)
         }
     }
     return nameByGrade().toMap()
@@ -176,5 +176,5 @@ private class Blueprint(graph: Graph) {
     val modules = graph.modules
     val providers = graph.providers
     val exportsNames = exports.map(Export::id).name()
-    val providersNames = providers.keys.toList().name()
+    val providersNames = providers.keys.name()
 }

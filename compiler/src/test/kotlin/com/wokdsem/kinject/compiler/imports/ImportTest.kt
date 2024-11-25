@@ -68,7 +68,7 @@ class ImportTest {
              class Module
         """
         )
-        asserCompilationError(graph, "KTestGraph", "A module must provide at least one dependency")
+        asserCompilationError(graph, "KTestGraph", "A module must at least provide one dependency or import another module")
     }
 
 }
