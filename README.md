@@ -123,7 +123,8 @@ class MyFirstGraph {
 }
 ```
 
-*\* kI2 will throw a compile-time error if it detects a dependency cycle, or if any of the dependencies are unknown.*
+*\* kI2 will throw a compile-time error if it detects a dependency cycle, or if any of the dependencies are unknown.*  
+*\* All declared dependencies must either serve as a dependency for other dependencies and/or be exported ([see export section below](#exporting-dependencies)), otherwise, a compile-time error will be thrown.*
 
 #### Optional types
 
@@ -193,9 +194,7 @@ Graphs are analyzed at compile-time, and if all requirements are satisfied, kI2 
 
 ```kotlin
 @Graph
-class MyFirstGraph {
-    fun provideNumber() = single { 8 }
-}
+class MyFirstGraph
 
 fun main() {
     val kGraph = KMyFirstGraph.from(graph = MyFirstGraph())
@@ -204,7 +203,7 @@ fun main() {
 
 Congratulations on getting your first graph up and running! However, you'll notice that there's no much you can do yet. There's one final step remaining.
 
-#### Export
+### Exporting dependencies
 
 kI2 processes all provided dependencies, internally constructs a valid dependency graph, and then makes the required dependencies publicly accessible in the generated K\<Graph> file.
 
@@ -241,8 +240,7 @@ fun main() {
 
 #### Export shortcut
 
-kI2 offers a variation of scope declarations that allows for the direct export of a dependency.  
-These declarations are known as 'export shortcuts,' and they include `exportSingle`, `exportEager`, and `exportFactory`.
+kI2 offers a variation of scope declarations that allows exporting dependencies directly. These declarations are known as *export shortcuts*, and these are: `exportSingle`, `exportEager`, and `exportFactory`.
 
 ```kotlin
 @Graph
