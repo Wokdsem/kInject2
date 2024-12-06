@@ -1,0 +1,21 @@
+[versions]
+kotlin = "2.0.21"
+kotlinPoet = "2.0.0"
+ksp = "2.0.21-1.0.28"
+jUnit = "5.11.3"
+
+[libraries]
+ksp = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+kotlinPoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet"}
+kotlinPoetKsp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinPoet"}
+kotlinReflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin"}
+autoService = "com.google.auto.service:auto-service:1.1.1"
+jUnitJupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "jUnit"}
+jUnitJupiterApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jUnit"}
+kspTest = "com.github.tschuchortdev:kotlin-compile-testing-ksp:1.6.0"
+
+[plugins]
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+toolchainResolver = "org.gradle.toolchains.foojay-resolver-convention:0.9.0"
+mavenPublish = "com.vanniktech.maven.publish:0.30.0"

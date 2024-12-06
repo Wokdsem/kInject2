@@ -1,8 +1,7 @@
 plugins {
-    id("kinject.kotlin-library-conventions")
     kotlin("jvm")
     kotlin("kapt")
-    `java-library`
+    alias(libs.plugins.mavenPublish)
 }
 
 kotlin { explicitApi() }
@@ -12,15 +11,15 @@ tasks.test { useJUnitPlatform() }
 
 dependencies {
     api(project(":kinject"))
-    implementation("com.google.devtools.ksp:symbol-processing-api:2.0.21-1.0.28")
-    implementation("com.squareup:kotlinpoet:2.0.0")
-    implementation("com.squareup:kotlinpoet-ksp:2.0.0")
+    implementation(libs.ksp)
+    implementation(libs.kotlinPoet)
+    implementation(libs.kotlinPoetKsp)
 
-    compileOnly("com.google.auto.service:auto-service:1.1.1")
-    kapt("com.google.auto.service:auto-service:1.1.1")
+    compileOnly(libs.autoService)
+    kapt(libs.autoService)
 
-    testImplementation("org.jetbrains.kotlin:kotlin-reflect:2.0.21")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.11.3")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.11.3")
-    testImplementation("com.github.tschuchortdev:kotlin-compile-testing-ksp:1.6.0")
+    testImplementation(libs.kotlinReflect)
+    testImplementation(libs.jUnitJupiter)
+    testImplementation(libs.jUnitJupiterApi)
+    testImplementation(libs.kspTest)
 }

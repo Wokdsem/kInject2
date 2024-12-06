@@ -1,6 +1,6 @@
 plugins {
-    id("kinject.kotlin-library-conventions")
     kotlin("multiplatform")
+    alias(libs.plugins.mavenPublish)
 }
 
 kotlin {

@@ -492,7 +492,7 @@ However, if you resonate with any of the following pain points or 'bad smells' t
 ## License
 
 ```
-Copyright 2023 Wokdsem
+Copyright 2024 Wokdsem
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
