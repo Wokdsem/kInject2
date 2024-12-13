@@ -414,6 +414,8 @@ dependencies {
 For a multiplatform target, check both, kinject and compiler, are added as follows in your build.gradle:
 
 ```kotlin
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
+
 plugins {
     id("com.google.devtools.ksp")
 }
@@ -429,7 +431,7 @@ dependencies {
 
 afterEvaluate {
     tasks {
-        withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
+        withType<KotlinCompilationTask<*>> {
             if (name != "kspCommonMainKotlinMetadata") dependsOn("kspCommonMainKotlinMetadata")
         }
     }
